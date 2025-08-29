@@ -1,0 +1,23 @@
+{
+    "name": "haeckel/json-rpc",
+    "description": "Json rpc 2.0 server",
+    "type": "library",
+    "require-dev": {
+        "phpunit/phpunit": "^12.3",
+        "phpstan/phpstan": "^2.1"
+    },
+    "license": "LGPL-3.0-or-later",
+    "autoload": {
+        "psr-4": {
+            "Haeckel\\JsonRpc\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Dominik Häckel",
+            "email": "dh@dc.ag"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
