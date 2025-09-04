@@ -1,0 +1,15 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Haeckel\JsonRpc\Message;
+
+class Notification
+{
+    public function __construct(
+        public readonly string $jsonrpc,
+        public readonly string $method,
+        public readonly array $params,
+    ) {
+    }
+}
