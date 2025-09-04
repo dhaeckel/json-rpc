@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\ErrorHandler;
 
-use Haeckel\JsonRpc\{Exception, Log, Message, RequestAware, Server};
-use Haeckel\JsonRpc\Exception\JsonParse;
+use Haeckel\JsonRpc\{Log, Message, Server};
 use Psr\Log\{LoggerInterface, NullLogger};
 
 class StdExceptionHandler
 {
-    use RequestAware;
+    use Message\IsRequestAware;
 
     public function __construct(
         private Server\Emitter $emitter = new Server\StdEmitter(),
@@ -22,13 +21,13 @@ class StdExceptionHandler
     {
         $this->logger->error($ex->getMessage(), Log\ContextProvider::fromThrowable($ex));
 
-        $errCode = match (true) {
-            $ex instanceof JsonParse => Message\ErrorCode::ParseError,
-            $ex instanceof Exception\MethodNotFound => Message\ErrorCode::MethodNotFound,
-            default => Message\ErrorCode::InternalError,
-        };
-        $errObj = new Message\ErrorObject($errCode, $errCode->matchMessage(), null);
-        $response = new Message\Response(error: $errObj, result: null, id: $this->request?->id);
+        // Notifications don't listen for responses
+        if ($this->request instanceof Message\Notification) {
+            return;
+        }
+
+        $errObj = new Message\ErrorObject($ex->getCode(), $ex->getMessage(), null);
+        $response = new Message\Response(result: null, id: $this->request?->id, error: $errObj);
         $this->emitter->emit($response);
     }
 }

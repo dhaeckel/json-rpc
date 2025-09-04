@@ -36,7 +36,7 @@ final class StdRequestFactory implements RequestFactory
         try {
             $data = \json_decode($json, true, flags: \JSON_THROW_ON_ERROR);
         } catch (\JsonException $e) {
-            throw new Exception\JsonParse($e->getMessage(), $e->getCode(), $e->getPrevious());
+            throw Exception\JsonParse::newDefault($e);
         }
 
         if (isset($data['id'])) {

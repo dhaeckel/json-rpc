@@ -19,7 +19,6 @@ class StdErrorHandler implements ErrorHandler
         ?int $errline = null
     ): bool {
         $this->logger->warning($errstr, ['at' => $errfile . ':' . $errline, 'code' => $errno]);
-
         return false;
     }
 }

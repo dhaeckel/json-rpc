@@ -8,5 +8,5 @@ use Haeckel\JsonRpc\Message;
 
 interface RequestHandler
 {
-    public function handle(Message\Notification|Message\Request $request): Message\Response;
+    public function handle(Message\Notification|Message\Request $request): ?Message\Response;
 }
