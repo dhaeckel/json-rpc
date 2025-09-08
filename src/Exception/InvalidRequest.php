@@ -6,15 +6,14 @@ namespace Haeckel\JsonRpc\Exception;
 
 use Haeckel\JsonRpc\Message;
 
-class MethodNotFound extends JsonRpcError
+class InvalidRequest extends JsonRpcError
 {
     public function __construct(
-        ?Message\Request $request = null,
-        ?Message\ErrorCode $errorCode = Message\ErrorCode::MethodNotFound,
+        ?Message\ErrorCode $errorCode = Message\ErrorCode::InvalidRequest,
         string $message = '',
         int $code = 0,
         ?\Throwable $previous = null,
     ) {
-        parent::__construct($request, $errorCode, $message, $code, $previous);
+        parent::__construct(null, $errorCode, $message, $code, $previous);
     }
 }

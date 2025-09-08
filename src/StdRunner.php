@@ -37,12 +37,38 @@ final class StdRunner implements Runner
         \set_error_handler($this->errorHandler);
         \register_shutdown_function($this->shutdownHandler);
 
-        $req = $this->reqFactory->newRequest();
-        $this->shutdownHandler->setRequest($req);
-        $this->exceptionHandler->setRequest($req);
+        try {
+            $req = $this->reqFactory->newRequest();
+        } catch (Exception\JsonParse $e) {
+            $response = new Message\Response(
+                error: new Message\ErrorObject($e->getErrorCode()),
+                id: null,
+                result: null,
+            );
+            $this->emitter->emit($response);
+            exit;
+        }
 
-        $handler = $this->router->getHandler($req);
-        $response = $handler->handle($req);
+        try {
+            $handler = $this->router->getHandler($req);
+        } catch (Exception\MethodNotFound $e) {
+            $response = new Message\Response(
+                error: new Message\ErrorObject($e->getErrorCode()),
+                id: $req->id,
+                result: null,
+            );
+            exit;
+        }
+        try {
+            $response = $handler->handle($req);
+        } catch (Exception\JsonRpcError $e) {
+            $response = new Message\Response(
+                error: new Message\ErrorObject($e->getErrorCode()),
+                id: $req->id,
+                result: null,
+            );
+            exit;
+        }
 
         // don't emit any response on notification
         if ($req instanceof Message\Notification) {

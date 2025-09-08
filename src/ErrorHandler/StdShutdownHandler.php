@@ -9,8 +9,6 @@ use Psr\Log\{LoggerInterface, NullLogger};
 
 class StdShutdownHandler implements ShutdownHandler
 {
-    use Message\IsRequestAware;
-
     public function __construct(
         private Server\Emitter $emitter = new Server\StdEmitter(),
         private LoggerInterface $logger = new NullLogger(),
@@ -28,18 +26,5 @@ class StdShutdownHandler implements ShutdownHandler
             $lastErr['message'],
             ['at' => $lastErr['file'] . ':' . $lastErr['line'], 'code' => $lastErr['type']],
         );
-
-        // Notifications don't listen for responses
-        if ($this->request instanceof Message\Notification) {
-            return;
-        }
-
-        $errCode = Message\ErrorCode::InternalError;
-        $response = new Message\Response(
-            result: null,
-            id: $this->request?->id,
-            error: new Message\ErrorObject($errCode, $errCode->matchMessage(), null),
-        );
-        $this->emitter->emit($response);
     }
 }

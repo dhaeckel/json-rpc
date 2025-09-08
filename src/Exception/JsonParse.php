@@ -6,11 +6,19 @@ namespace Haeckel\JsonRpc\Exception;
 
 use Haeckel\JsonRpc\Message;
 
-class JsonParse extends \JsonException
+class JsonParse extends JsonRpcError
 {
-    public static function newDefault(?\Throwable $prev): static
-    {
-        $errCode = Message\ErrorCode::ParseError;
-        return new static($errCode->matchMessage(), $errCode->value, $prev);
+    public function __construct(
+        ?Message\ErrorCode $errorCode = Message\ErrorCode::ParseError,
+        string $message = '',
+        int $code = 0,
+        ?\Throwable $previous = null,
+    ) {
+        parent::__construct(
+            errorCode: $errorCode,
+            message: $message,
+            code: $code,
+            previous: $previous,
+        );
     }
 }

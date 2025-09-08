@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\Server;
 
-use Haeckel\JsonRpc\Exception;
-use Haeckel\JsonRpc\Message;
+use Haeckel\JsonRpc\{Exception, Message};
 
 interface Router
 {

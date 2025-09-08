@@ -12,8 +12,13 @@ class ErrorObject implements \JsonSerializable
 
     public function __construct(
         public readonly int|ErrorCode $code,
-        public readonly string $message,
-        public readonly mixed $data,
+        private string $message = '',
+        public readonly mixed $data = null,
     ) {
+        $this->message = (
+            $message === '' && $code instanceof ErrorCode
+            ? $code->matchMessage()
+            : ''
+        );
     }
 }

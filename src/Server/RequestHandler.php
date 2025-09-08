@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\Server;
 
-use Haeckel\JsonRpc\Message;
+use Haeckel\JsonRpc\{Exception, Message};
 
 interface RequestHandler
 {
+    /** @throws Exception\JsonRpcError */
     public function handle(Message\Notification|Message\Request $request): ?Message\Response;
 }
