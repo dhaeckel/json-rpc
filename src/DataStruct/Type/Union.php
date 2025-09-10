@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\DataStruct\Type;
 
-class Union implements Definition
+final class Union implements Definition
 {
     /** @var Definition[] */
     private array $types;

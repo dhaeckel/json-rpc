@@ -9,5 +9,5 @@ use Haeckel\JsonRpc\Message;
 interface RequestFactory
 {
     /** @throws \Exception */
-    public function newRequest(): Message\Request|Message\Notification;
+    public function newRequest(): Message\Request|Message\Notification|Message\BatchRequest;
 }

@@ -6,7 +6,7 @@ namespace Haeckel\JsonRpc\Exception;
 
 use Haeckel\JsonRpc\Message;
 
-class JsonParse extends JsonRpcError
+final class JsonParse extends JsonRpcError
 {
     public function __construct(
         ?Message\ErrorCode $errorCode = Message\ErrorCode::ParseError,

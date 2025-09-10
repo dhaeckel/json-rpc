@@ -8,7 +8,7 @@ namespace Haeckel\JsonRpc\DataStruct\Type;
  * covers class, interface and enum type
  * @link https://php.net/manual/en/language.types.type-system.php#language.types.type-system.atomic.user-defined
  */
-class ClassLike implements Definition
+final class ClassLike implements Definition
 {
     public function __construct(private readonly string $typeName)
     {

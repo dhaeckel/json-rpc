@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\ErrorHandler;
 
-use Haeckel\JsonRpc\{Message, Server};
 use Psr\Log\{LoggerInterface, NullLogger};
 
 class StdShutdownHandler implements ShutdownHandler
 {
     public function __construct(
-        private Server\Emitter $emitter = new Server\StdEmitter(),
         private LoggerInterface $logger = new NullLogger(),
     ) {
     }

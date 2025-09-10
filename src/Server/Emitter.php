@@ -9,5 +9,5 @@ use Haeckel\JsonRpc\Message;
 interface Emitter
 {
     /** @throws \Exception */
-    public function emit(Message\Response $response): void;
+    public function emit(Message\Response|Message\BatchResponse $response): void;
 }

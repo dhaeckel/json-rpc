@@ -6,7 +6,7 @@ namespace Haeckel\JsonRpc\Exception;
 
 use Haeckel\JsonRpc\Message;
 
-class InvalidRequest extends JsonRpcError
+final class InvalidRequest extends JsonRpcError
 {
     public function __construct(
         ?Message\ErrorCode $errorCode = Message\ErrorCode::InvalidRequest,

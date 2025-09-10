@@ -9,7 +9,7 @@ final class Request extends Notification
     public function __construct(
         string $jsonrpc,
         string $method,
-        array $params,
+        array|object $params,
         public readonly int|string $id,
     ) {
         parent::__construct($jsonrpc, $method, $params);

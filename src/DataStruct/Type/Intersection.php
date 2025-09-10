@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\DataStruct\Type;
 
-class Intersection implements Definition
+final class Intersection implements Definition
 {
     /** @var Definition[] */
     private array $intersection;
