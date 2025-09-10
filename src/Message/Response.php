@@ -6,6 +6,9 @@ namespace Haeckel\JsonRpc\Message;
 
 final class Response implements \JsonSerializable
 {
+    /**
+     * @param null|array<int|string,mixed>|bool|float|int|string|\stdClass|\JsonSerializable $result
+     */
     public function __construct(
         public readonly null|array|bool|float|int|string|\stdClass|\JsonSerializable $result,
         public readonly null|int|string $id,

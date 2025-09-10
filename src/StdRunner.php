@@ -35,9 +35,9 @@ final class StdRunner implements Runner
             $req = $this->reqFactory->newRequest();
         } catch (Exception\JsonParse $e) {
             $response = new Message\Response(
-                error: new Message\ErrorObject($e->getErrorCode()),
-                id: null,
                 result: null,
+                id: null,
+                error: new Message\ErrorObject($e->getErrorCode()),
             );
             $this->emitter->emit($response);
             return;
@@ -115,7 +115,7 @@ final class StdRunner implements Runner
         }
     }
 
-    private function handleNotification(Message\Request $req): void
+    private function handleNotification(Message\Notification $req): void
     {
         $handler = $this->router->getHandler($req);
         $handler->handle($req);

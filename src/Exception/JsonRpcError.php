@@ -9,8 +9,8 @@ use Haeckel\JsonRpc\Message;
 abstract class JsonRpcError extends \Exception
 {
     public function __construct(
+        protected Message\ErrorCode $errorCode,
         protected ?Message\Request $request = null,
-        protected ?Message\ErrorCode $errorCode = null,
         string $message = '',
         int $code = 0,
         ?\Throwable $previous = null,

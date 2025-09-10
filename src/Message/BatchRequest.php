@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\Message;
 
-use Haeckel\JsonRpc\DataStruct\{Collection, Type};
+use Haeckel\JsonRpc\DataStruct\Collection;
 
+/**
+ * @extends Collection<int,Request>
+ */
 class BatchRequest extends Collection
 {
     public function __construct(Request ...$requestList)
@@ -13,24 +16,17 @@ class BatchRequest extends Collection
         $this->collection = $requestList;
     }
 
-    /** @param Request ...$elements */
-    protected function remove(mixed ...$elements): void
+    protected function remove(Request ...$elements): void
     {
         $this->genericRemove(...$elements);
     }
 
-    public function current(): ?Request
+    public function current(): Request
     {
-        return $this->genericCurrent() ?: null;
+        return $this->genericCurrent();
     }
 
-    public function getElementType(): Type\Definition
-    {
-        return new Type\ClassLike(Request::class);
-    }
-
-    /** @param Request ...$values */
-    public function add(mixed ...$values): void
+    public function add(Request ...$values): void
     {
         $this->genericAdd(...$values);
     }

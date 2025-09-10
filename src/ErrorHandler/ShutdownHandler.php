@@ -6,5 +6,5 @@ namespace Haeckel\JsonRpc\ErrorHandler;
 
 interface ShutdownHandler
 {
-    public function __invoke(...$args): void;
+    public function __invoke(mixed ...$args): void;
 }

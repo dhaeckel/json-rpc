@@ -9,7 +9,7 @@ use Haeckel\JsonRpc\Message;
 final class JsonParse extends JsonRpcError
 {
     public function __construct(
-        ?Message\ErrorCode $errorCode = Message\ErrorCode::ParseError,
+        Message\ErrorCode $errorCode = Message\ErrorCode::ParseError,
         string $message = '',
         int $code = 0,
         ?\Throwable $previous = null,

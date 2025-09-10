@@ -13,7 +13,7 @@ class StdShutdownHandler implements ShutdownHandler
     ) {
     }
 
-    public function __invoke(...$args): void
+    public function __invoke(mixed ...$args): void
     {
         $lastErr = \error_get_last();
         $fatal = \E_ERROR | \E_PARSE | \E_CORE_ERROR | \E_COMPILE_ERROR | \E_USER_ERROR;

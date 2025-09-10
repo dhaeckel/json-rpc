@@ -4,29 +4,27 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\Message;
 
-use Haeckel\JsonRpc\DataStruct\{Collection, Type};
+use Haeckel\JsonRpc\DataStruct\Collection;
 
 final class BatchResponse extends Collection
 {
-    public function getElementType(): Type\Definition
+    public function __construct(Response ...$response)
     {
-        return new Type\ClassLike(Response::class);
+        $this->collection = $response;
     }
 
-    /** @param Response $values */
-    public function add(array ...$values): void
+    public function add(Response ...$values): void
     {
         $this->genericAdd(...$values);
     }
 
-    /** @param Response $elements */
-    protected function remove(mixed ...$elements): void
+    protected function remove(Response ...$elements): void
     {
         $this->genericRemove(...$elements);
     }
 
-    public function current(): ?Response
+    public function current(): Response
     {
-        return $this->genericCurrent() ?: null;
+        return \current($this->collection);
     }
 }

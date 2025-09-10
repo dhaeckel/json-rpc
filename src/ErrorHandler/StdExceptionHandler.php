@@ -7,7 +7,7 @@ namespace Haeckel\JsonRpc\ErrorHandler;
 use Haeckel\JsonRpc\Log;
 use Psr\Log\{LoggerInterface, NullLogger};
 
-final class StdExceptionHandler
+final class StdExceptionHandler implements ExceptionHandler
 {
     public function __construct(
         private LoggerInterface $logger = new NullLogger(),

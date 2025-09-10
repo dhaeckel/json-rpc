@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\DataStruct;
 
-use Haeckel\JsonRpc\DataStruct\Type;
-
+/**
+ * @implements \Iterator<int,mixed>
+ */
 abstract class Collection implements \Countable, \Iterator, \JsonSerializable
 {
     /** @var array<int,mixed> */
@@ -34,71 +35,25 @@ abstract class Collection implements \Countable, \Iterator, \JsonSerializable
 
     public function rewind(): void
     {
-        \rewind($this->collection);
+        \reset($this->collection);
     }
     /* #endregion */
-
-    abstract public function getElementType(): Type\Definition;
 
     public function count(): int
     {
         return \count($this->collection);
     }
 
+    /** @return array<int,mixed> */
     public function jsonSerialize(): array
     {
         return $this->collection;
-    }
-
-    /** @throws \InvalidArgumentException */
-    abstract public function add(mixed ...$values): void;
-
-    /** @throws \InvalidArgumentException */
-    protected function genericAdd(mixed ...$values): void
-    {
-        $type = $this->getElementType();
-        foreach ($values as $argPos => $val) {
-            if (! $type->isOfType($val)) {
-                throw new \InvalidArgumentException(
-                    'expected all variadic args in param 1 [$values] to be of type '
-                    . $type->getTypeName() . ', got ' . \get_debug_type($val) . 'at position '
-                    . $argPos + 1
-                );
-            }
-        }
-        \array_push($this->collection, ...$values);
     }
 
     public function clear(): void
     {
         $this->collection = [];
         \reset($this->collection);
-    }
-
-    /**
-     * objects will be compared with loose cmp, everything else with strict cmp
-     *
-     * @throws \InvalidArgumentException
-     */
-    abstract protected function remove(mixed ...$elements): void;
-
-    /** @throws \InvalidArgumentException */
-    protected function genericRemove(mixed ...$elements): void
-    {
-        $type = $this->getElementType();
-        $strict = ! \is_object($elements[0]);
-        foreach ($elements as $argPos => $elem) {
-            if (! $type->isOfType($elem)) {
-                throw new \InvalidArgumentException(
-                    'expected all variadic args in param 1 [$values] to be of type '
-                    . $type->getTypeName() . ', got ' . \get_debug_type($elem) . 'at position '
-                    . $argPos + 1
-                );
-            }
-            while ($key = \array_search($elem, $this->collection, $strict) !== false) {
-                unset($this->collection[$key]);
-            }
-        }
     }
 
     public function isEmpty(): bool
@@ -110,5 +65,22 @@ abstract class Collection implements \Countable, \Iterator, \JsonSerializable
     public function toArray(): array
     {
         return $this->collection;
+    }
+
+    /** @throws \InvalidArgumentException */
+    protected function genericAdd(mixed ...$values): void
+    {
+        \array_push($this->collection, ...$values);
+    }
+
+    /** @throws \InvalidArgumentException */
+    protected function genericRemove(mixed ...$elements): void
+    {
+        $strict = ! \is_object($elements[0]);
+        foreach ($elements as $elem) {
+            while ($key = \array_search($elem, $this->collection, $strict) !== false) {
+                unset($this->collection[$key]);
+            }
+        }
     }
 }

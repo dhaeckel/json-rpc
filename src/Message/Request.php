@@ -6,6 +6,7 @@ namespace Haeckel\JsonRpc\Message;
 
 final class Request extends Notification
 {
+    /** @param object|array<int,mixed> $params */
     public function __construct(
         string $jsonrpc,
         string $method,
