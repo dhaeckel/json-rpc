@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\DataStruct\Type;
 
-/** types that are not class like (class, interface, enum) and can be checked by the is_* family of functions */
+/**
+ * types that are not class like (class, interface, enum), covered by the is_* family of funcs
+ * @link https://www.php.net/manual/en/ref.var.php for the docs of these functions
+ */
 enum LanguageBuiltin: string implements Definition
 {
     case Null = 'null';
@@ -26,7 +29,7 @@ enum LanguageBuiltin: string implements Definition
         return $this->name;
     }
 
-    public function isElementOfType(mixed $value): bool
+    public function isOfType(mixed $value): bool
     {
         return match ($this) {
             self::Null, => \is_null($value),

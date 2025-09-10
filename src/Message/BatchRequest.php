@@ -13,43 +13,25 @@ class BatchRequest extends Collection
         $this->collection = $requestList;
     }
 
+    /** @param Request ...$elements */
+    protected function remove(mixed ...$elements): void
+    {
+        $this->genericRemove(...$elements);
+    }
+
+    public function current(): ?Request
+    {
+        return $this->genericCurrent() ?: null;
+    }
+
     public function getElementType(): Type\Definition
     {
         return new Type\ClassLike(Request::class);
     }
 
-    /**
-     * @param int $offset
-     * @throws \InvalidArgumentException
-     */
-    public function offsetGet(mixed $offset): ?Request
+    /** @param Request ...$values */
+    public function add(mixed ...$values): void
     {
-        return $this->genericOffsetGet($offset);
-    }
-
-    /**
-     * @param int $offset
-     * @param Request $value
-     *
-     * @throws \InvalidArgumentException
-     */
-    public function offsetSet(mixed $offset, mixed $value): void
-    {
-        $this->genericOffsetSet($offset, $value);
-    }
-
-    /**
-     * @param Request ...$values
-     *
-     * @throws \InvalidArgumentException
-     */
-    public function push(mixed ...$values): void
-    {
-        $this->genericPush(...$values);
-    }
-
-    public function pop(): ?Request
-    {
-        return $this->genericPop();
+        $this->genericAdd(...$values);
     }
 }

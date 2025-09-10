@@ -61,11 +61,13 @@ final class StdRequestFactory implements RequestFactory
             return new Message\Notification($data->jsonrpc, $data->method, $data->params);
         }
 
-        $reqList = [];
+        $batchReq = new Message\BatchRequest();
         foreach ($data as $req) {
-            $reqList[] = new Message\Request($req->jsonrpc, $req->method, $req->params, $req->id);
+            $batchReq->add(
+                new Message\Request($req->jsonrpc, $req->method, $req->params, $req->id),
+            );
         }
 
-        return new Message\BatchRequest(...$reqList);
+        return $batchReq;
     }
 }

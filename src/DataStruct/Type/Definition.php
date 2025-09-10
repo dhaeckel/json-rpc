@@ -6,6 +6,6 @@ namespace Haeckel\JsonRpc\DataStruct\Type;
 
 interface Definition
 {
-    public function isElementOfType(mixed $type): bool;
+    public function isOfType(mixed $value): bool;
     public function getTypeName(): string;
 }

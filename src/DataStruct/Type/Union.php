@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\DataStruct\Type;
 
-class UnionType implements Definition
+class Union implements Definition
 {
     /** @var Definition[] */
     private array $types;
@@ -19,10 +19,10 @@ class UnionType implements Definition
         return \implode('|', $this->types);
     }
 
-    public function isElementOfType(mixed $value): bool
+    public function isOfType(mixed $value): bool
     {
         foreach ($this->types as $type) {
-            if ($type->isElementOfType($value)) {
+            if ($type->isOfType($value)) {
                 return true;
             }
         }
