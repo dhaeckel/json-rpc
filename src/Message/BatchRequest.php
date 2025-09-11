@@ -7,25 +7,28 @@ namespace Haeckel\JsonRpc\Message;
 use Haeckel\JsonRpc\DataStruct\Collection;
 
 /**
- * @extends Collection<int,Request>
+ * @extends Collection<Request>
  */
 class BatchRequest extends Collection
 {
+    /** @no-named-arguments */
     public function __construct(Request ...$requestList)
     {
         $this->collection = $requestList;
     }
 
+    /** @no-named-arguments */
     protected function remove(Request ...$elements): void
     {
         $this->genericRemove(...$elements);
     }
 
-    public function current(): Request
+    public function current(): ?Request
     {
-        return $this->genericCurrent();
+        return $this->genericCurrent() ?: null;
     }
 
+    /** @no-named-arguments */
     public function add(Request ...$values): void
     {
         $this->genericAdd(...$values);

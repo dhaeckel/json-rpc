@@ -8,7 +8,7 @@ use Haeckel\JsonRpc\Message;
 
 final class StdEmitter implements Emitter
 {
-    /** @throws \JsonException */
+    /** @throws \Exception */
     public function emit(Message\Response|Message\BatchResponse $response): void
     {
         echo \json_encode($response, \JSON_THROW_ON_ERROR);

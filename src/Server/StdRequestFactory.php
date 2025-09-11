@@ -21,6 +21,9 @@ final class StdRequestFactory implements RequestFactory
     private function fromStdio(): Message\Request|Message\Notification|Message\BatchRequest
     {
         global $argv;
+        if (! isset($argv[1])) {
+            throw new Exception\InvalidRequest();
+        }
         return $this->parse($argv[1]);
     }
 

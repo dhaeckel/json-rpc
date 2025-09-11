@@ -18,6 +18,7 @@ final class ContextProvider
         $ctx['at'] = $ex->getFile() . ':' . $ex->getLine();
         $ctx['trace'] = $ex->getTrace();
         if (! empty($additionalData)) {
+            $ctx['additionalData'] = [];
             $ctx['additionalData'][] = $additionalData;
         }
 
