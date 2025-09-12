@@ -2,32 +2,40 @@
 
 declare(strict_types=1);
 
-namespace Haeckel\JsonRpc;
+namespace Haeckel\JsonRpc\Server;
 
-use Haeckel\JsonRpc\ErrorHandler\{
-    ErrorHandler,
-    ExceptionHandler,
-    ShutdownHandler,
-    StdErrorHandler,
-    StdExceptionHandler,
-    StdShutdownHandler,
-};
+use Haeckel\JsonRpc\{ErrorHandler, Exception, Log, Message};
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
+use Psr\Log\{LoggerInterface, LogLevel};
 
 final class StdRunner implements Runner
 {
-    private ExceptionHandler $exceptionHandler;
-    private ShutdownHandler $shutdownHandler;
+    private Errorhandler\ExceptionHandler $exceptionHandler;
+    private Errorhandler\ShutdownHandler $shutdownHandler;
+    private Errorhandler\ErrorHandler $errorHandler;
+    private LoggerInterface $logger;
 
     public function __construct(
-        private Server\Router $router,
-        private Server\RequestFactory $reqFactory = new Server\StdRequestFactory(),
-        private Server\Emitter $emitter = new Server\StdEmitter(),
-        ?ExceptionHandler $exceptionHandler = null,
-        private ErrorHandler $errorHandler = new StdErrorHandler(),
-        ?ShutdownHandler $shutdownHandler = null,
+        private Router $router,
+        private RequestFactory $reqFactory = new StdRequestFactory(),
+        private Emitter $emitter = new StdEmitter(),
+        ?ErrorHandler\ExceptionHandler $exceptionHandler = null,
+        ?ErrorHandler\ErrorHandler $errorHandler = null,
+        ?ErrorHandler\ShutdownHandler $shutdownHandler = null,
+        ?LoggerInterface $logger = null,
     ) {
-        $this->exceptionHandler = $exceptionHandler ?? new StdExceptionHandler($this->emitter);
-        $this->shutdownHandler = $shutdownHandler ?? new StdShutdownHandler($this->emitter);
+        $this->logger = $logger ?? new Logger(
+            'php-json-rpc',
+            [ new StreamHandler('php://stderr', LogLevel::WARNING) ],
+        );
+        $this->exceptionHandler = (
+            $exceptionHandler ?? new ErrorHandler\StdExceptionHandler($this->emitter, $this->logger)
+        );
+        $this->shutdownHandler = (
+            $shutdownHandler ?? new ErrorHandler\StdShutdownHandler($this->emitter, $this->logger)
+        );
+        $this->errorHandler = $errorHandler ?? new ErrorHandler\StdErrorHandler($this->logger);
     }
 
     public function run(): void
@@ -38,7 +46,8 @@ final class StdRunner implements Runner
 
         try {
             $req = $this->reqFactory->newRequest();
-        } catch (Exception\JsonParse $e) {
+        } catch (Exception\JsonParse | Exception\InvalidRequest $e) {
+            $this->logger->error($e->getMessage(), Log\CtxProvider::fromThrowable($e));
             $response = new Message\Response(
                 result: null,
                 id: null,
