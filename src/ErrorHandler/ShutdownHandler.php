@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\ErrorHandler;
 
-interface ShutdownHandler
+interface ShutdownHandler extends RequestAware
 {
     public function __invoke(mixed ...$args): void;
 }

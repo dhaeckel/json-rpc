@@ -15,14 +15,19 @@ use Haeckel\JsonRpc\ErrorHandler\{
 
 final class StdRunner implements Runner
 {
+    private ExceptionHandler $exceptionHandler;
+    private ShutdownHandler $shutdownHandler;
+
     public function __construct(
         private Server\Router $router,
         private Server\RequestFactory $reqFactory = new Server\StdRequestFactory(),
         private Server\Emitter $emitter = new Server\StdEmitter(),
-        private ExceptionHandler $exceptionHandler = new StdExceptionHandler(),
+        ?ExceptionHandler $exceptionHandler = null,
         private ErrorHandler $errorHandler = new StdErrorHandler(),
-        private ShutdownHandler $shutdownHandler = new StdShutdownHandler(),
+        ?ShutdownHandler $shutdownHandler = null,
     ) {
+        $this->exceptionHandler = $exceptionHandler ?? new StdExceptionHandler($this->emitter);
+        $this->shutdownHandler = $shutdownHandler ?? new StdShutdownHandler($this->emitter);
     }
 
     public function run(): void
@@ -37,13 +42,14 @@ final class StdRunner implements Runner
             $response = new Message\Response(
                 result: null,
                 id: null,
-                error: new Message\ErrorObject($e->getErrorCode()),
+                error: $e->getErrorObject(),
             );
             $this->emitter->emit($response);
             return;
         }
 
         if ($req instanceof Message\Request) {
+            $this->setReqToErrHandlers($req);
             $response = $this->handleRequest($req);
             $this->emitter->emit($response);
             return;
@@ -62,13 +68,14 @@ final class StdRunner implements Runner
     {
         $response = new Message\BatchResponse();
         foreach ($batchReq as $req) {
+            $this->setReqToErrHandlers($req);
             try {
                 $handler = $this->router->getHandler($req);
             } catch (Exception\MethodNotFound $e) {
                 $response->add(
                     new Message\Response(
                         id: $req->id,
-                        error: new Message\ErrorObject($e->getErrorCode()),
+                        error: $e->getErrorObject(),
                         result: null,
                     )
                 );
@@ -76,13 +83,17 @@ final class StdRunner implements Runner
             }
 
             try {
-                $response->add($handler->handle($req));
+                $res = $handler->handle($req);
+                if ($res === null) {
+                    throw new Exception\InternalError();
+                }
+                $response->add($res);
             } catch (Exception\JsonRpcError $e) {
                 $response->add(
                     new Message\Response(
                         null,
                         $req->id,
-                        new Message\ErrorObject($e->getErrorCode())
+                        $e->getErrorObject(),
                     )
                 );
                 continue;
@@ -98,26 +109,44 @@ final class StdRunner implements Runner
             $handler = $this->router->getHandler($req);
         } catch (Exception\MethodNotFound $e) {
             return new Message\Response(
-                error: new Message\ErrorObject($e->getErrorCode()),
+                error: $e->getErrorObject(),
                 id: $req->id,
                 result: null,
             );
         }
 
         try {
-            return $handler->handle($req);
+            $response = $handler->handle($req);
+            if ($response === null) {
+                return new Message\Response(
+                    null,
+                    $req->id,
+                    new Message\ErrorObject(
+                        Message\ErrorCode::InternalError,
+                        data: 'did not return a response for a request ',
+                    ),
+                );
+            }
         } catch (Exception\JsonRpcError $e) {
             return new Message\Response(
-                error: new Message\ErrorObject($e->getErrorCode()),
+                error: $e->getErrorObject(),
                 id: $req->id,
                 result: null,
             );
         }
+
+        return $response;
     }
 
     private function handleNotification(Message\Notification $req): void
     {
         $handler = $this->router->getHandler($req);
         $handler->handle($req);
+    }
+
+    private function setReqToErrHandlers(Message\Request $req): void
+    {
+        $this->exceptionHandler->setRequest($req);
+        $this->shutdownHandler->setRequest($req);
     }
 }

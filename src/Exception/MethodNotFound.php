@@ -9,12 +9,16 @@ use Haeckel\JsonRpc\Message;
 final class MethodNotFound extends JsonRpcError
 {
     public function __construct(
+        ?Message\ErrorObject $errorObject = null,
         ?Message\Request $request = null,
-        Message\ErrorCode $errorCode = Message\ErrorCode::MethodNotFound,
         string $message = '',
         int $code = 0,
         ?\Throwable $previous = null,
     ) {
-        parent::__construct($errorCode, $request, $message, $code, $previous);
+        $errorObject ??= new Message\ErrorObject(
+            Message\ErrorCode::MethodNotFound,
+            data: $message !== '' ? $message : $previous?->getMessage(),
+        );
+        parent::__construct($errorObject, $request, $message, $code, $previous);
     }
 }

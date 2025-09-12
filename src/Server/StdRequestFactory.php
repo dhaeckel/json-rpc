@@ -8,28 +8,40 @@ use Haeckel\JsonRpc\{Exception, Message};
 
 final class StdRequestFactory implements RequestFactory
 {
-    /** @throws Exception\JsonParse if json_decode fails */
-    public function newRequest(): Message\Request|Message\Notification|Message\BatchRequest
-    {
+    /**
+     * @throws Exception\JsonParse if json_decode fails
+     * @throws Exception\InvalidRequest if input violates request schema
+     */
+    public function newRequest(
+        string $input = ''
+    ): Message\Request|Message\Notification|Message\BatchRequest {
+        if ($input !== '') {
+            return $this->parse($input);
+        }
         return match (\php_sapi_name()) {
             'cli' => $this->fromStdio(),
             default => $this->fromHttp(),
         };
     }
 
-    /** @throws Exception\JsonParse if json_decode fails */
+    /**
+     * @throws Exception\JsonParse if json_decode fails
+     * @throws Exception\InvalidRequest if input violates request schema
+     */
     private function fromStdio(): Message\Request|Message\Notification|Message\BatchRequest
     {
+        /** @var string[] */
         global $argv;
         if (! isset($argv[1])) {
-            throw new Exception\InvalidRequest();
+            throw new Exception\InvalidRequest(message: 'got no argument with json message');
         }
         return $this->parse($argv[1]);
     }
 
     /**
      * @throws Exception\JsonParse if json_decode fails
-     * @throws \ErrorException if unable to read from php://input
+     * @throws Exception\InvalidRequest if input violates request schema
+     * @throws Exception\InternalError if unable to read from php://input
      */
     private function fromHttp(): Message\Request|Message\Notification|Message\BatchRequest
     {
@@ -38,13 +50,12 @@ final class StdRequestFactory implements RequestFactory
         if ($input === false) {
             $e = \error_get_last();
             if ($e === null) {
-                throw new \ErrorException('unknown error while reading from php://input');
+                throw new Exception\InternalError(
+                    message: 'unknown error while reading from php://input',
+                );
             }
-            throw new \ErrorException(
-                'error while reading from php://input: ' . $e['message'],
-                severity: $e['type'],
-                filename: $e['file'],
-                line: $e['line']
+            throw new Exception\InternalError(
+                message: 'error while reading from php://input: ' . $e['message'],
             );
         }
         return $this->parse($input);
@@ -63,33 +74,35 @@ final class StdRequestFactory implements RequestFactory
         }
 
         try {
-            if (\is_object($data)) {
+            // request is json object, assume single request or notification
+            if ($data instanceof \stdClass) {
                 if (isset($data->id)) {
-                    return new Message\Request(
-                        $data->jsonrpc,
-                        $data->method,
-                        $data->params,
-                        $data->id,
-                    );
+                    return Message\Request::newFromData($data);
                 }
-                return new Message\Notification($data->jsonrpc, $data->method, $data->params);
+                return Message\Notification::newFromData($data);
             }
 
+            // outer struct is array, assume batch request
             if (\is_array($data)) {
                 $batchReq = new Message\BatchRequest();
-                /** @var object $req */
                 foreach ($data as $req) {
-                    $batchReq->add(
-                        new Message\Request($req->jsonrpc, $req->method, $req->params, $req->id),
-                    );
+                    // nested request violates schema
+                    if (! $req instanceof \stdClass) {
+                        throw new Exception\InvalidRequest();
+                    }
+                    $batchReq->add(Message\Request::newFromData($req));
                 }
-
                 return $batchReq;
             }
-        } catch (\Throwable $e) {
-            throw new Exception\InvalidRequest();
+        } catch (\TypeError | \InvalidArgumentException $e) {
+            // any input was not of the type or value expected
+            throw new Exception\InvalidRequest(previous: $e);
         }
 
-        throw new Exception\InvalidRequest();
+        // nothing matched, base schema violated
+        throw new Exception\InvalidRequest(
+            message: 'expected message to be object (request) or array (batch request), got '
+                . \get_debug_type($data)
+        );
     }
 }
