@@ -6,5 +6,5 @@ namespace Haeckel\JsonRpc\Server;
 
 interface Runner
 {
-    public function run(): void;
+    public function run(string $input = ''): void;
 }

@@ -10,7 +10,8 @@
     "license": "LGPL-3.0-or-later",
     "autoload": {
         "psr-4": {
-            "Haeckel\\JsonRpc\\": "src/"
+            "Haeckel\\JsonRpc\\": "src/",
+            "Haeckel\\JsonRpc\\Test\\": "test/"
         }
     },
     "authors": [

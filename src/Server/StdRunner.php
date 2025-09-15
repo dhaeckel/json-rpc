@@ -42,14 +42,14 @@ final class StdRunner implements Runner
     }
 
     /** @throws Exception\JsonRpcError */
-    public function run(): void
+    public function run(string $input = ''): void
     {
         \set_exception_handler($this->exceptionHandler);
         \set_error_handler($this->errorHandler);
         \register_shutdown_function($this->shutdownHandler);
 
         try {
-            $req = $this->reqFactory->newMessage();
+            $req = $this->reqFactory->newMessage($input);
         } catch (Exception\JsonParse | Exception\InvalidRequest $e) {
             $this->logger->error($e->getMessage(), [$e]);
             $response = new Message\Response(
