@@ -6,13 +6,13 @@ namespace Haeckel\JsonRpc\Server;
 
 use Haeckel\JsonRpc\{Exception, Message};
 
-final class StdRequestFactory implements RequestFactory
+final class StdMessageFactory implements MessageFactory
 {
     /**
      * @throws Exception\JsonParse if json_decode fails
      * @throws Exception\InvalidRequest if input violates request schema
      */
-    public function newRequest(
+    public function newMessage(
         string $input = ''
     ): Message\Request|Message\Notification|Message\BatchRequest {
         if ($input !== '') {

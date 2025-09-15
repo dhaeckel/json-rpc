@@ -6,8 +6,8 @@ namespace Haeckel\JsonRpc\Server;
 
 use Haeckel\JsonRpc\{Exception, Message};
 
-interface RequestHandler
+interface NotificationHandler
 {
     /** @throws Exception\JsonRpcError */
-    public function handle(Message\Request $request): Message\Response;
+    public function handle(Message\Notification $notification): void;
 }

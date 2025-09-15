@@ -9,5 +9,8 @@ use Haeckel\JsonRpc\{Exception, Message};
 interface Router
 {
     /** @throws Exception\MethodNotFound */
-    public function getHandler(Message\Request|Message\Notification $request): RequestHandler;
+    public function getRequestHandler(Message\Request $request): RequestHandler;
+
+    /** @throws Exception\MethodNotFound */
+    public function getNotificationHandler(Message\Notification $notification): NotificationHandler;
 }

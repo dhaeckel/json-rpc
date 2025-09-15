@@ -11,5 +11,5 @@ interface Middleware
     public function process(
         Message\Notification|Message\Request $request,
         RequestHandler $requestHandler,
-    ): Message\Response;
+    ): ?Message\Response;
 }

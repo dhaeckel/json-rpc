@@ -20,7 +20,7 @@ final class StdExceptionHandler implements ExceptionHandler
     /** for global uncaught exceptions, script terminates after this function finishes */
     public function __invoke(\Throwable $ex): void
     {
-        $this->logger->error($ex->getMessage(), Log\CtxProvider::fromThrowable($ex));
+        $this->logger->error($ex->getMessage(), [$ex]);
         $errObj = (
             $ex instanceof Exception\JsonRpcError
             ? $ex->getErrorObject()

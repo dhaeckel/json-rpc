@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\Server;
 
-use Haeckel\JsonRpc\{ErrorHandler, Exception, Log, Message};
+use Haeckel\JsonRpc\{ErrorHandler, Exception, Message};
+use Monolog\Formatter\JsonFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Psr\Log\{LoggerInterface, LogLevel};
@@ -18,16 +19,18 @@ final class StdRunner implements Runner
 
     public function __construct(
         private Router $router,
-        private RequestFactory $reqFactory = new StdRequestFactory(),
+        private MessageFactory $reqFactory = new StdMessageFactory(),
         private Emitter $emitter = new StdEmitter(),
         ?ErrorHandler\ExceptionHandler $exceptionHandler = null,
         ?ErrorHandler\ErrorHandler $errorHandler = null,
         ?ErrorHandler\ShutdownHandler $shutdownHandler = null,
         ?LoggerInterface $logger = null,
     ) {
+        $streamHandler = new StreamHandler('php://stderr', LogLevel::WARNING);
+        $streamHandler->setFormatter(new JsonFormatter());
         $this->logger = $logger ?? new Logger(
             'php-json-rpc',
-            [ new StreamHandler('php://stderr', LogLevel::WARNING) ],
+            [ $streamHandler ],
         );
         $this->exceptionHandler = (
             $exceptionHandler ?? new ErrorHandler\StdExceptionHandler($this->emitter, $this->logger)
@@ -38,6 +41,7 @@ final class StdRunner implements Runner
         $this->errorHandler = $errorHandler ?? new ErrorHandler\StdErrorHandler($this->logger);
     }
 
+    /** @throws Exception\JsonRpcError */
     public function run(): void
     {
         \set_exception_handler($this->exceptionHandler);
@@ -45,9 +49,9 @@ final class StdRunner implements Runner
         \register_shutdown_function($this->shutdownHandler);
 
         try {
-            $req = $this->reqFactory->newRequest();
+            $req = $this->reqFactory->newMessage();
         } catch (Exception\JsonParse | Exception\InvalidRequest $e) {
-            $this->logger->error($e->getMessage(), Log\CtxProvider::fromThrowable($e));
+            $this->logger->error($e->getMessage(), [$e]);
             $response = new Message\Response(
                 result: null,
                 id: null,
@@ -79,8 +83,9 @@ final class StdRunner implements Runner
         foreach ($batchReq as $req) {
             $this->setReqToErrHandlers($req);
             try {
-                $handler = $this->router->getHandler($req);
+                $handler = $this->router->getRequestHandler($req);
             } catch (Exception\MethodNotFound $e) {
+                $this->logger->warning($e->getMessage(), [$e]);
                 $response->add(
                     new Message\Response(
                         id: $req->id,
@@ -93,11 +98,9 @@ final class StdRunner implements Runner
 
             try {
                 $res = $handler->handle($req);
-                if ($res === null) {
-                    throw new Exception\InternalError();
-                }
                 $response->add($res);
             } catch (Exception\JsonRpcError $e) {
+                $this->logger->error($e->getMessage(), [$e]);
                 $response->add(
                     new Message\Response(
                         null,
@@ -115,8 +118,9 @@ final class StdRunner implements Runner
     private function handleRequest(Message\Request $req): Message\Response
     {
         try {
-            $handler = $this->router->getHandler($req);
+            $handler = $this->router->getRequestHandler($req);
         } catch (Exception\MethodNotFound $e) {
+            $this->logger->error($e->getMessage(), [$e]);
             return new Message\Response(
                 error: $e->getErrorObject(),
                 id: $req->id,
@@ -126,17 +130,8 @@ final class StdRunner implements Runner
 
         try {
             $response = $handler->handle($req);
-            if ($response === null) {
-                return new Message\Response(
-                    null,
-                    $req->id,
-                    new Message\ErrorObject(
-                        Message\ErrorCode::InternalError,
-                        data: 'did not return a response for a request ',
-                    ),
-                );
-            }
         } catch (Exception\JsonRpcError $e) {
+            $this->logger->error($e->getMessage(), [$e]);
             return new Message\Response(
                 error: $e->getErrorObject(),
                 id: $req->id,
@@ -147,9 +142,10 @@ final class StdRunner implements Runner
         return $response;
     }
 
+    /** @throws Exception\JsonRpcError */
     private function handleNotification(Message\Notification $req): void
     {
-        $handler = $this->router->getHandler($req);
+        $handler = $this->router->getNotificationHandler($req);
         $handler->handle($req);
     }
 

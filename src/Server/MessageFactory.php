@@ -6,11 +6,11 @@ namespace Haeckel\JsonRpc\Server;
 
 use Haeckel\JsonRpc\{Exception, Message};
 
-interface RequestFactory
+interface MessageFactory
 {
     /**
      * @throws Exception\JsonParse if json_decode fails
      * @throws Exception\InvalidRequest if input violates request schema
      */
-    public function newRequest(): Message\Request|Message\Notification|Message\BatchRequest;
+    public function newMessage(): Message\BatchRequest|Message\Notification|Message\Request;
 }
