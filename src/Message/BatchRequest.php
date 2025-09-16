@@ -11,8 +11,11 @@ use Haeckel\JsonRpc\DataStruct\Collection;
  */
 class BatchRequest extends Collection
 {
-    /** @var list<Response> */
-    private array $requestErrorResponses = [];
+    /**
+     * save responses for invalid requests in batch request
+     * @var list<Response>
+     */
+    private array $invalidReqResponseList = [];
 
     /** @no-named-arguments */
     public function __construct(Request|Notification ...$requestList)
@@ -41,16 +44,16 @@ class BatchRequest extends Collection
      * if any request of a batch is invalid or hast invalid json, add the error response here
      * @no-named-arguments
      */
-    public function addErrorResponse(Response ...$response): void
+    public function addResponseForInvalidReq(Response ...$response): void
     {
-        \array_push($this->requestErrorResponses, ...$response);
+        \array_push($this->invalidReqResponseList, ...$response);
     }
 
     /**
      * @return list<Response>
      */
-    public function getRequestErrorResponses(): array
+    public function getResponsesForInvalidRequests(): array
     {
-        return $this->requestErrorResponses;
+        return $this->invalidReqResponseList;
     }
 }

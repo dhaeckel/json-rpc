@@ -24,10 +24,10 @@ class Notification
     public static function newFromData(object $data): self
     {
         $errors = [];
-        if (! \is_string($data->jsonrpc)) {
+        if (! isset($data->jsonrpc) || ! \is_string($data->jsonrpc)) {
             $errors[] = 'Member "jsonrpc" must be string';
         }
-        if (! \is_string($data->method)) {
+        if (! isset($data->method) || ! \is_string($data->method)) {
             $errors[] = 'member "method" must be string';
         }
 

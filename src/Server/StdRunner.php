@@ -93,7 +93,7 @@ final class StdRunner implements Runner
         }
 
         // add any error responses for invalid nested requests
-        $response->add(...$batchReq->getRequestErrorResponses());
+        $response->add(...$batchReq->getResponsesForInvalidRequests());
 
         return $response;
     }

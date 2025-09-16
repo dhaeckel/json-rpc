@@ -24,6 +24,7 @@ class TestRouter implements Server\Router
         return match ($notification->method) {
             UpdateNotificationTestHandler::getMethodName() => new UpdateNotificationTestHandler(),
             NotifyHelloHandler::getMethodName() => new NotifyHelloHandler(),
+            NotifySumHandler::METHOD => new NotifySumHandler(),
             default => throw new Exception\MethodNotFound(),
         };
     }

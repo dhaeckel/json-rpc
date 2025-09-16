@@ -319,6 +319,19 @@ final class IntegrationTest extends TestCase
         );
     }
 
+    public function testBatchNotifications()
+    {
+        $this->expectOutputString('');
+        $this->runner->run(
+            <<<'JSON'
+            [
+                {"jsonrpc": "2.0", "method": "notify_sum", "params": [1,2,4]},
+                {"jsonrpc": "2.0", "method": "notify_hello", "params": [7]}
+            ]
+            JSON
+        );
+    }
+
     public function tearDown(): void
     {
         \restore_error_handler();

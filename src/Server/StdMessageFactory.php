@@ -134,7 +134,7 @@ final class StdMessageFactory implements MessageFactory
         foreach ($data as $req) {
             // nested request violates schema
             if (! \is_object($req)) {
-                $batchReq->addErrorResponse(
+                $batchReq->addResponseForInvalidReq(
                     new Message\Response(
                         null,
                         null,
@@ -154,7 +154,7 @@ final class StdMessageFactory implements MessageFactory
                     $batchReq->add(Message\Notification::newFromData($req));
                 }
             } catch (Exception\JsonRpcError $e) {
-                $batchReq->addErrorResponse(
+                $batchReq->addResponseForInvalidReq(
                     new Message\Response(
                         null,
                         null,
