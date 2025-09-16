@@ -39,11 +39,17 @@
             "Composer\\Config::disableProcessTimeout",
             "vendor/bin/phpstan"
         ],
-        "ci": [
-            "@phpstan -q",
-            "@testSilent"
+        "cs": [
+            "Composer\\Config::disableProcessTimeout",
+            "vendor/bin/phpcs src/"
         ],
-        "ciVerbose": [
+        "cbf": [
+            "Composer\\Config::disableProcessTimeout",
+            "vendor/bin/phpcbf src/"
+        ],
+        "ci": [
+            "@cbf",
+            "@cs",
             "@phpstan",
             "@test"
         ]
