@@ -29,13 +29,21 @@
     "scripts": {
         "test": [
             "Composer\\Config::disableProcessTimeout",
+            "vendor/bin/phpunit"
+        ],
+         "testSilent": [
+            "Composer\\Config::disableProcessTimeout",
             "vendor/bin/phpunit --no-output 2> /dev/null"
         ],
         "phpstan": [
             "Composer\\Config::disableProcessTimeout",
-            "vendor/bin/phpstan -q"
+            "vendor/bin/phpstan"
         ],
         "ci": [
+            "@phpstan -q",
+            "@testSilent"
+        ],
+        "ciVerbose": [
             "@phpstan",
             "@test"
         ]
