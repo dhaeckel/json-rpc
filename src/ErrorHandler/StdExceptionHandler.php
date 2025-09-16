@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\ErrorHandler;
 
-use Haeckel\JsonRpc\{Exception, Log, Message, Server};
+use Haeckel\JsonRpc\{Exception, Message, Server};
 use Psr\Log\{LoggerInterface, NullLogger};
 
 final class StdExceptionHandler implements ExceptionHandler
@@ -24,7 +24,7 @@ final class StdExceptionHandler implements ExceptionHandler
         $errObj = (
             $ex instanceof Exception\JsonRpcError
             ? $ex->getErrorObject()
-            : new Message\ErrorObject(Message\ErrorCode::InternalError)
+            : new Message\ErrorObject(Message\PredefinedErrorCode::InternalError)
         );
         $response = new Message\Response(
             null,

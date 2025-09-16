@@ -18,6 +18,7 @@ final class StdMessageFactory implements MessageFactory
         if ($input !== '') {
             return $this->parse($input);
         }
+
         return match (\php_sapi_name()) {
             'cli' => $this->fromStdio(),
             default => $this->fromHttp(),
@@ -68,35 +69,49 @@ final class StdMessageFactory implements MessageFactory
     private function parse(string $json): Message\Request|Message\Notification|Message\BatchRequest
     {
         try {
+            /**
+             * @var object{
+             *      jsonrpc:string,
+             *      method:string,
+             *      params?:array<int,mixed>|object,id?:string|int
+             * }
+             * |array<
+             *      object{
+             *          jsonrpc:string,
+             *          method:string,
+             *          params?:array<int,mixed>|object,id?:string|int}
+             * >
+             */
             $data = \json_decode($json, flags: \JSON_THROW_ON_ERROR);
         } catch (\JsonException $e) {
             throw new Exception\JsonParse(message: $e->getMessage(), previous: $e);
         }
 
-        try {
-            // request is json object, assume single request or notification
-            if ($data instanceof \stdClass) {
-                if (isset($data->id)) {
-                    return Message\Request::newFromData($data);
-                }
-                return Message\Notification::newFromData($data);
+        // request is json object, assume single request or notification
+        if (\is_object($data)) {
+            if (isset($data->id)) {
+                return Message\Request::newFromData($data); // @phpstan argument.type
             }
+            return Message\Notification::newFromData($data);
+        }
 
-            // outer struct is array, assume batch request
-            if (\is_array($data)) {
-                $batchReq = new Message\BatchRequest();
-                foreach ($data as $req) {
-                    // nested request violates schema
-                    if (! $req instanceof \stdClass) {
-                        throw new Exception\InvalidRequest();
-                    }
-                    $batchReq->add(Message\Request::newFromData($req));
+        // outer struct is array, assume batch request
+        if (\is_array($data)) {
+            $batchReq = new Message\BatchRequest();
+            foreach ($data as $req) {
+                // nested request violates schema
+                if (! \is_object($req)) {
+                    throw new Exception\InvalidRequest(
+                        new Message\ErrorObject(
+                            Message\PredefinedErrorCode::InvalidRequest,
+                            data: 'array elements must be objects, got ' . \get_debug_type($req),
+                        ),
+                    );
                 }
-                return $batchReq;
+                // @phpstan-ignore argument.type (validation is done inside initializer method)
+                $batchReq->add(Message\Request::newFromData($req));
             }
-        } catch (\TypeError | \InvalidArgumentException $e) {
-            // any input was not of the type or value expected
-            throw new Exception\InvalidRequest(previous: $e);
+            return $batchReq;
         }
 
         // nothing matched, base schema violated

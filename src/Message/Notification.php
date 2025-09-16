@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\Message;
 
-use Haeckel\JsonRpc\Exception;
+use Haeckel\JsonRpc\{Exception, Message};
 
 class Notification
 {
@@ -12,21 +12,40 @@ class Notification
     public function __construct(
         public readonly string $jsonrpc,
         public readonly string $method,
-        public readonly array|object $params,
+        public readonly null|array|object $params,
     ) {
     }
 
-    /** @throws Exception\InvalidRequest */
-    public static function newFromData(\stdClass $data): self
+    /**
+     * @param object{jsonrpc:string,method:string,params?:array<mixed>|object} $data
+     *
+     * @throws Exception\InvalidRequest
+     */
+    public static function newFromData(object $data): self
     {
-        try {
-            return new self(
-                $data->jsonrpc, // @phpstan-ignore argument.type (deserialization of input)
-                $data->method, // @phpstan-ignore argument.type (deserialization of input)
-                $data->params, // @phpstan-ignore argument.type (deserialization of input)
-            );
-        } catch (\TypeError $e) {
-            throw new Exception\InvalidRequest(previous: $e);
+        $errors = [];
+        if (! \is_string($data->jsonrpc)) {
+            $errors[] = 'Member "jsonrpc" must be string';
         }
+        if (! \is_string($data->method)) {
+            $errors[] = 'member "method" must be string';
+        }
+
+        if (isset($data->params) && (! \is_array($data->params) && ! \is_object($data->params))) {
+            $errors[] = 'member "params" must be array, object or be omitted';
+        }
+
+        if ($errors !== []) {
+            throw new Exception\InvalidRequest(
+                new Message\ErrorObject(Message\PredefinedErrorCode::InvalidRequest),
+                \json_encode($errors, flags: \JSON_THROW_ON_ERROR),
+            );
+        }
+
+        return new self(
+            $data->jsonrpc,
+            $data->method,
+            $data->params ?? null,
+        );
     }
 }

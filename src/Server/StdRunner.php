@@ -27,7 +27,7 @@ final class StdRunner implements Runner
         ?LoggerInterface $logger = null,
     ) {
         $streamHandler = new StreamHandler('php://stderr', LogLevel::WARNING);
-        $streamHandler->setFormatter(new JsonFormatter());
+        $streamHandler->setFormatter(new JsonFormatter(includeStacktraces: true));
         $this->logger = $logger ?? new Logger(
             'php-json-rpc',
             [ $streamHandler ],

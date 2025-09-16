@@ -15,12 +15,12 @@ final class JsonParse extends JsonRpcError
         ?\Throwable $previous = null,
     ) {
         $errorObject ??= new Message\ErrorObject(
-            Message\ErrorCode::ParseError,
+            Message\PredefinedErrorCode::ParseError,
             data: $message !== '' ? $message : $previous?->getMessage(),
         );
         parent::__construct(
             errorObject: $errorObject,
-            message: $message,
+            message: $message ?: $errorObject->code->getMessage(),
             code: $code,
             previous: $previous,
         );

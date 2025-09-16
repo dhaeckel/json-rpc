@@ -15,9 +15,15 @@ final class InvalidRequest extends JsonRpcError
         ?\Throwable $previous = null,
     ) {
         $errorObject ??= new Message\ErrorObject(
-            Message\ErrorCode::InvalidRequest,
+            Message\PredefinedErrorCode::InvalidRequest,
             data: $message !== '' ? $message : $previous?->getMessage() ?? '',
         );
-        parent::__construct($errorObject, null, $message, $code, $previous);
+        parent::__construct(
+            $errorObject,
+            null,
+            $message ?: $errorObject->code->getMessage(),
+            $code,
+            $previous
+        );
     }
 }

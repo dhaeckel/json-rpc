@@ -2,8 +2,8 @@ parameters:
     level: 10
     paths:
         - src
-        - test
     excludePaths:
         - test/resources/*
     errorFormat: table
     editorUrl: 'vscode://file/%%file%%:%%line%%'
+    treatPhpDocTypesAsCertain: false
