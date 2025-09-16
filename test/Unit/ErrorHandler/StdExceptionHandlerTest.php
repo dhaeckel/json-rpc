@@ -17,7 +17,7 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(Exception\InvalidParams::class)]
 #[UsesClass(Message\Request::class)]
 #[Small]
-class StdErrorHandlerTest extends TestCase
+class StdExceptionHandlerTest extends TestCase
 {
     private ErrorHandler\StdExceptionHandler $exceptionHandler;
 
@@ -63,6 +63,26 @@ class StdErrorHandlerTest extends TestCase
         $e = new Exception\InvalidParams();
         $req = new Message\Request('2.0', 'test', [1, 2], 3);
         $this->exceptionHandler->setRequest($req);
+
+        \ob_start();
+        $this->exceptionHandler->__invoke($e);
+        $res = \ob_get_clean();
+        $this->assertJsonStringEqualsJsonString(
+            \json_encode(
+                new Message\Response(
+                    null,
+                    $req->id,
+                    new Message\ErrorObject(Message\PredefinedErrorCode::InvalidParams),
+                ),
+            ),
+            $res,
+        );
+    }
+
+    public function testWithRequestOnException()
+    {
+        $req = new Message\Request('2.0', 'test', [1, 2], 3);
+        $e = new Exception\InvalidParams(req: $req);
 
         \ob_start();
         $this->exceptionHandler->__invoke($e);

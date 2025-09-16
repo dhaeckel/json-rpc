@@ -7,6 +7,7 @@ namespace Haeckel\JsonRpc\ErrorHandler;
 use Haeckel\JsonRpc\{Message, Server};
 use Psr\Log\{LoggerInterface, NullLogger};
 
+/** @codeCoverageIgnore cannot be covered by phpunit */
 class StdShutdownHandler implements ShutdownHandler
 {
     use IsRequestAware;

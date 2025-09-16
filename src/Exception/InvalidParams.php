@@ -10,6 +10,7 @@ final class InvalidParams extends JsonRpcError
 {
     public function __construct(
         ?Message\ErrorObject $errorObject = null,
+        ?Message\Request $req = null,
         string $message = '',
         int $code = 0,
         ?\Throwable $previous = null,
@@ -20,7 +21,7 @@ final class InvalidParams extends JsonRpcError
         );
         parent::__construct(
             $errorObject,
-            null,
+            $req,
             $message ?: $errorObject->code->getMessage(),
             $code,
             $previous,
