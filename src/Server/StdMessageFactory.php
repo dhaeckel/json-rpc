@@ -76,10 +76,12 @@ final class StdMessageFactory implements MessageFactory
              *      params?:array<int,mixed>|object,id?:string|int
              * }
              * |array<
+             *      int,
              *      object{
              *          jsonrpc:string,
              *          method:string,
-             *          params?:array<int,mixed>|object,id?:string|int}
+             *          params?:array<int,mixed>|object,id?:string|int
+             *      }
              * >
              */
             $data = \json_decode($json, flags: \JSON_THROW_ON_ERROR);
@@ -90,28 +92,14 @@ final class StdMessageFactory implements MessageFactory
         // request is json object, assume single request or notification
         if (\is_object($data)) {
             if (isset($data->id)) {
-                return Message\Request::newFromData($data); // @phpstan argument.type
+                return Message\Request::newFromData($data);
             }
             return Message\Notification::newFromData($data);
         }
 
         // outer struct is array, assume batch request
         if (\is_array($data)) {
-            $batchReq = new Message\BatchRequest();
-            foreach ($data as $req) {
-                // nested request violates schema
-                if (! \is_object($req)) {
-                    throw new Exception\InvalidRequest(
-                        new Message\ErrorObject(
-                            Message\PredefinedErrorCode::InvalidRequest,
-                            data: 'array elements must be objects, got ' . \get_debug_type($req),
-                        ),
-                    );
-                }
-                // @phpstan-ignore argument.type (validation is done inside initializer method)
-                $batchReq->add(Message\Request::newFromData($req));
-            }
-            return $batchReq;
+            return $this->createBatchRequest($data);
         }
 
         // nothing matched, base schema violated
@@ -119,5 +107,63 @@ final class StdMessageFactory implements MessageFactory
             message: 'expected message to be object (request) or array (batch request), got '
                 . \get_debug_type($data)
         );
+    }
+
+    /**
+     * @param array<
+     *      int,
+     *      object{
+     *          jsonrpc:string,
+     *          method:string,
+     *          params?:array<int,mixed>|object,id?:string|int
+     *      }
+     * > $data
+     */
+    private function createBatchRequest(array $data): Message\BatchRequest
+    {
+        if ($data === []) {
+            throw new Exception\InvalidRequest(
+                new Message\ErrorObject(
+                    Message\PredefinedErrorCode::InvalidRequest,
+                    data: 'empty batch request',
+                ),
+            );
+        }
+
+        $batchReq = new Message\BatchRequest();
+        foreach ($data as $req) {
+            // nested request violates schema
+            if (! \is_object($req)) {
+                $batchReq->addErrorResponse(
+                    new Message\Response(
+                        null,
+                        null,
+                        new Message\ErrorObject(
+                            Message\PredefinedErrorCode::InvalidRequest,
+                            data: 'array elements must be objects, got ' . \get_debug_type($req)
+                        )
+                    )
+                );
+                continue;
+            }
+
+            try {
+                if (isset($req->id)) {
+                    $batchReq->add(Message\Request::newFromData($req));
+                } else {
+                    $batchReq->add(Message\Notification::newFromData($req));
+                }
+            } catch (Exception\JsonRpcError $e) {
+                $batchReq->addErrorResponse(
+                    new Message\Response(
+                        null,
+                        null,
+                        $e->getErrorObject(),
+                    )
+                );
+            }
+        }
+
+        return $batchReq;
     }
 }

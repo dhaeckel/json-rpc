@@ -81,42 +81,26 @@ final class StdRunner implements Runner
     {
         $response = new Message\BatchResponse();
         foreach ($batchReq as $req) {
-            $this->setReqToErrHandlers($req);
-            try {
-                $handler = $this->router->getRequestHandler($req);
-            } catch (Exception\MethodNotFound $e) {
-                $this->logger->warning($e->getMessage(), [$e]);
-                $response->add(
-                    new Message\Response(
-                        id: $req->id,
-                        error: $e->getErrorObject(),
-                        result: null,
-                    )
-                );
-                continue;
-            }
-
-            try {
-                $res = $handler->handle($req);
-                $response->add($res);
-            } catch (Exception\JsonRpcError $e) {
-                $this->logger->error($e->getMessage(), [$e]);
-                $response->add(
-                    new Message\Response(
-                        null,
-                        $req->id,
-                        $e->getErrorObject(),
-                    )
-                );
-                continue;
+            if ($req instanceof Message\Request) {
+                $response->add($this->handleRequest($req));
+            } else {
+                try {
+                    $this->handleNotification($req);
+                } catch (Exception\JsonRpcError $e) {
+                    $response->add(new Message\Response(null, null, $e->getErrorObject()));
+                }
             }
         }
+
+        // add any error responses for invalid nested requests
+        $response->add(...$batchReq->getRequestErrorResponses());
 
         return $response;
     }
 
     private function handleRequest(Message\Request $req): Message\Response
     {
+        $this->setReqToErrHandlers($req);
         try {
             $handler = $this->router->getRequestHandler($req);
         } catch (Exception\MethodNotFound $e) {

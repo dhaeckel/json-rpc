@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\Test\Integration;
 
-use Haeckel\JsonRpc\ErrorHandler\StdExceptionHandler;
 use Haeckel\JsonRpc\Server;
-use Haeckel\JsonRpc\Server\StdEmitter;
-use PHPUnit\Framework\Attributes\{CoversNothing, Large, WithoutErrorHandler};
+use PHPUnit\Framework\Attributes\{CoversNothing, Large};
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -97,7 +95,7 @@ final class IntegrationTest extends TestCase
         $this->runner->run('{"jsonrpc": "2.0", "method": "update", "params": [1,2,3,4,5]}');
     }
 
-    public function testMethodNotFound()
+    public function testMethodNotFound(): void
     {
         \ob_start();
         $this->runner->run('{"jsonrpc": "2.0", "method": "foobar", "id": "1"}');
@@ -154,6 +152,84 @@ final class IntegrationTest extends TestCase
                 JSON
             ),
             \json_decode($res),
+        );
+    }
+
+    public function testBatchWithInvalidJson(): void
+    {
+        \ob_start();
+        $this->runner->run(
+            <<<'TXT'
+            [
+                {"jsonrpc": "2.0", "method": "sum", "params": [1,2,4], "id": "1"},
+                {"jsonrpc": "2.0", "method"
+            ]
+            TXT,
+        );
+        $res = \ob_get_clean();
+        $this->assertEquals(
+            \json_decode(
+                <<<'JSON'
+                {
+                    "jsonrpc": "2.0",
+                    "error": {"code": -32700, "message": "Parse error", "data": "Syntax error"},
+                    "id": null
+                }
+                JSON
+            ),
+            \json_decode($res),
+        );
+    }
+
+    public function testEmptyArrayReq(): void
+    {
+        \ob_start();
+        $this->runner->run('[]');
+        $res = \ob_get_clean();
+
+        $this->assertEquals(
+            \json_decode(
+                <<<'JSON'
+                {
+                    "jsonrpc": "2.0",
+                    "error": {
+                        "code": -32600,
+                        "message": "Invalid Request",
+                        "data": "empty batch request"
+                    },
+                    "id": null
+                }
+                JSON,
+                flags: \JSON_THROW_ON_ERROR
+            ),
+            \json_decode($res, flags: \JSON_THROW_ON_ERROR),
+        );
+    }
+
+    public function testInvalidArrayReq(): void
+    {
+        \ob_start();
+        $this->runner->run('[1]');
+        $res = \ob_get_clean();
+
+        $this->assertEquals(
+            \json_decode(
+                <<<'JSON'
+                [
+                    {
+                        "jsonrpc": "2.0",
+                        "error": {
+                            "code": -32600,
+                            "message": "Invalid Request",
+                            "data": "array elements must be objects, got int"
+                        },
+                        "id": null
+                    }
+                ]
+                JSON,
+                flags: \JSON_THROW_ON_ERROR
+            ),
+            \json_decode($res, flags: \JSON_THROW_ON_ERROR),
         );
     }
 
