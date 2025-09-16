@@ -12,6 +12,8 @@ class TestRouter implements Server\Router
     {
         return match ($request->method) {
             SubtractTestHandler::getMethodName() => new SubtractTestHandler(),
+            SumTestHandler::getMethodName() => new SumTestHandler(),
+            GetDataHandler::METHOD => new GetDataHandler(),
             default => throw new Exception\MethodNotFound(),
         };
     }
@@ -21,6 +23,7 @@ class TestRouter implements Server\Router
     ): Server\NotificationHandler {
         return match ($notification->method) {
             UpdateNotificationTestHandler::getMethodName() => new UpdateNotificationTestHandler(),
+            NotifyHelloHandler::getMethodName() => new NotifyHelloHandler(),
             default => throw new Exception\MethodNotFound(),
         };
     }

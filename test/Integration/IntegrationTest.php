@@ -181,7 +181,7 @@ final class IntegrationTest extends TestCase
         );
     }
 
-    public function testEmptyArrayReq(): void
+    public function testEmptyBatchReq(): void
     {
         \ob_start();
         $this->runner->run('[]');
@@ -206,7 +206,7 @@ final class IntegrationTest extends TestCase
         );
     }
 
-    public function testInvalidArrayReq(): void
+    public function testInvalidBatchReq(): void
     {
         \ob_start();
         $this->runner->run('[1]');
@@ -230,6 +230,92 @@ final class IntegrationTest extends TestCase
                 flags: \JSON_THROW_ON_ERROR
             ),
             \json_decode($res, flags: \JSON_THROW_ON_ERROR),
+        );
+    }
+
+    public function testInvalidBatchReq1()
+    {
+        \ob_start();
+        $this->runner->run('[1,2,3]');
+        $res = \ob_get_clean();
+
+        $this->assertEquals(
+            \json_decode(
+                <<<'JSON'
+                [
+                    {
+                        "jsonrpc": "2.0",
+                        "error": {
+                            "code": -32600,
+                            "message": "Invalid Request",
+                            "data": "array elements must be objects, got int"
+                        },
+                        "id": null
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "error": {
+                            "code": -32600,
+                            "message": "Invalid Request",
+                            "data": "array elements must be objects, got int"
+                        },
+                        "id": null
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "error": {
+                            "code": -32600,
+                            "message": "Invalid Request",
+                            "data": "array elements must be objects, got int"
+                        },
+                        "id": null
+                    }
+                ]
+                JSON
+            ),
+            \json_decode($res),
+        );
+    }
+
+    public function testBatchReq(): void
+    {
+        \ob_start();
+        $this->runner->run(
+            <<<'JSON'
+            [
+                {"jsonrpc": "2.0", "method": "sum", "params": [1,2,4], "id": "1"},
+                {"jsonrpc": "2.0", "method": "notify_hello", "params": [7]},
+                {"jsonrpc": "2.0", "method": "subtract", "params": [42,23], "id": "2"},
+                {"foo": "boo"},
+                {"jsonrpc": "2.0", "method": "foo.get", "params": {"name": "myself"}, "id": "5"},
+                {"jsonrpc": "2.0", "method": "get_data", "id": "9"}
+            ]
+            JSON
+        );
+        $res = \ob_get_clean();
+
+        $this->assertEquals(
+            \json_decode(
+                <<<'JSON'
+                [
+                    {"jsonrpc": "2.0", "result": 7, "id": "1"},
+                    {"jsonrpc": "2.0", "result": 19, "id": "2"},
+                    {
+                        "jsonrpc": "2.0",
+                        "error": {"code": -32601, "message": "Method not found"},
+                        "id": "5"
+                    },
+                    {"jsonrpc": "2.0", "result": ["hello", 5], "id": "9"},
+                    {
+                        "jsonrpc": "2.0",
+                        "error": {"code": -32600, "message": "Invalid Request"},
+                        "id": null
+                    }
+                ]
+                JSON,
+                flags: \JSON_THROW_ON_ERROR,
+            ),
+            \json_decode($res),
         );
     }
 
