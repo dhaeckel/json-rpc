@@ -50,8 +50,8 @@
         "ci": [
             "@cbf",
             "@cs",
-            "@phpstan",
-            "@test"
+            "@phpstan -q",
+            "@testSilent"
         ]
     }
 }

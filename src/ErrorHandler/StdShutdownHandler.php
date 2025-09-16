@@ -32,7 +32,10 @@ class StdShutdownHandler implements ShutdownHandler
         $response = new Message\Response(
             null,
             $this->request?->id,
-            new Message\ErrorObject(Message\PredefinedErrorCode::InternalError, data: $lastErr['message']),
+            new Message\ErrorObject(
+                Message\PredefinedErrorCode::InternalError,
+                data: $lastErr['message'],
+            ),
         );
         $this->emitter->emit($response);
     }
