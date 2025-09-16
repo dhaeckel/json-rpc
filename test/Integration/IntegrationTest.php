@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Haeckel\JsonRpc\Test\Integration;
 
 use Haeckel\JsonRpc\Server;
-use PHPUnit\Framework\Attributes\{CoversNothing, Large};
+use PHPUnit\Framework\Attributes\{CoversNothing, Small};
 use PHPUnit\Framework\TestCase;
 
 /**
  * @link https://www.jsonrpc.org/specification#examples
  */
 #[CoversNothing]
-#[Large]
+#[Small]
 final class IntegrationTest extends TestCase
 {
     private Server\Runner $runner;
@@ -40,9 +40,9 @@ final class IntegrationTest extends TestCase
         $this->runner->run('{"jsonrpc": "2.0", "method": "subtract", "params": [23, 42], "id": 2}');
         $res = \ob_get_clean();
 
-        $this->assertEquals(
-            \json_decode('{"jsonrpc": "2.0", "result": -19, "id": 2}'),
-            \json_decode($res),
+        $this->assertJsonStringEqualsJsonString(
+            '{"jsonrpc": "2.0", "result": -19, "id": 2}',
+            $res,
         );
     }
 
@@ -62,9 +62,9 @@ final class IntegrationTest extends TestCase
 
         $res = \ob_get_clean();
 
-        $this->assertEquals(
-            \json_decode('{"jsonrpc": "2.0", "result": 19, "id": 3}'),
-            \json_decode($res),
+        $this->assertJsonStringEqualsJsonString(
+            '{"jsonrpc": "2.0", "result": 19, "id": 3}',
+            $res,
         );
     }
 
@@ -83,9 +83,9 @@ final class IntegrationTest extends TestCase
         );
         $res = \ob_get_clean();
 
-        $this->assertEquals(
-            \json_decode('{"jsonrpc": "2.0", "result": 19, "id": 4}'),
-            \json_decode($res),
+        $this->assertJsonStringEqualsJsonString(
+            '{"jsonrpc": "2.0", "result": 19, "id": 4}',
+            $res,
         );
     }
 
@@ -101,17 +101,15 @@ final class IntegrationTest extends TestCase
         $this->runner->run('{"jsonrpc": "2.0", "method": "foobar", "id": "1"}');
         $res = \ob_get_clean();
 
-        $this->assertEquals(
-            \json_decode(
-                <<<'JSON'
-                {
-                    "jsonrpc": "2.0",
-                    "error": {"code": -32601, "message": "Method not found"},
-                    "id": "1"
-                }
-                JSON
-            ),
-            \json_decode($res),
+        $this->assertJsonStringEqualsJsonString(
+            <<<'JSON'
+            {
+                "jsonrpc": "2.0",
+                "error": {"code": -32601, "message": "Method not found"},
+                "id": "1"
+            }
+            JSON,
+            $res,
         );
     }
 
@@ -121,17 +119,15 @@ final class IntegrationTest extends TestCase
         $this->runner->run('{"jsonrpc": "2.0", "method": "foobar, "params": "bar", "baz]');
         $res = \ob_get_clean();
 
-        $this->assertEquals(
-            \json_decode(
-                <<<JSON
-                {
-                    "jsonrpc": "2.0",
-                    "error": {"code": -32700, "message": "Parse error", "data": "Syntax error"},
-                    "id": null
-                }
-                JSON,
-            ),
-            \json_decode($res),
+        $this->assertJsonStringEqualsJsonString(
+            <<<JSON
+            {
+                "jsonrpc": "2.0",
+                "error": {"code": -32700, "message": "Parse error", "data": "Syntax error"},
+                "id": null
+            }
+            JSON,
+            $res,
         );
     }
 
@@ -141,17 +137,15 @@ final class IntegrationTest extends TestCase
         $this->runner->run('{"jsonrpc": "2.0", "method": 1, "params": "bar"}');
         $res = \ob_get_clean();
 
-        $this->assertEquals(
-            \json_decode(
-                <<<JSON
-                {
-                    "jsonrpc": "2.0",
-                    "error": {"code": -32600, "message": "Invalid Request"},
-                    "id": null
-                }
-                JSON
-            ),
-            \json_decode($res),
+        $this->assertJsonStringEqualsJsonString(
+            <<<JSON
+            {
+                "jsonrpc": "2.0",
+                "error": {"code": -32600, "message": "Invalid Request"},
+                "id": null
+            }
+            JSON,
+            $res,
         );
     }
 
@@ -167,17 +161,15 @@ final class IntegrationTest extends TestCase
             TXT,
         );
         $res = \ob_get_clean();
-        $this->assertEquals(
-            \json_decode(
-                <<<'JSON'
-                {
-                    "jsonrpc": "2.0",
-                    "error": {"code": -32700, "message": "Parse error", "data": "Syntax error"},
-                    "id": null
-                }
-                JSON
-            ),
-            \json_decode($res),
+        $this->assertJsonStringEqualsJsonString(
+            <<<'JSON'
+            {
+                "jsonrpc": "2.0",
+                "error": {"code": -32700, "message": "Parse error", "data": "Syntax error"},
+                "id": null
+            }
+            JSON,
+            $res,
         );
     }
 
@@ -187,22 +179,19 @@ final class IntegrationTest extends TestCase
         $this->runner->run('[]');
         $res = \ob_get_clean();
 
-        $this->assertEquals(
-            \json_decode(
-                <<<'JSON'
-                {
-                    "jsonrpc": "2.0",
-                    "error": {
-                        "code": -32600,
-                        "message": "Invalid Request",
-                        "data": "empty batch request"
-                    },
-                    "id": null
-                }
-                JSON,
-                flags: \JSON_THROW_ON_ERROR
-            ),
-            \json_decode($res, flags: \JSON_THROW_ON_ERROR),
+        $this->assertJsonStringEqualsJsonString(
+            <<<'JSON'
+            {
+                "jsonrpc": "2.0",
+                "error": {
+                    "code": -32600,
+                    "message": "Invalid Request",
+                    "data": "empty batch request"
+                },
+                "id": null
+            }
+            JSON,
+            $res,
         );
     }
 
@@ -212,24 +201,21 @@ final class IntegrationTest extends TestCase
         $this->runner->run('[1]');
         $res = \ob_get_clean();
 
-        $this->assertEquals(
-            \json_decode(
-                <<<'JSON'
-                [
-                    {
-                        "jsonrpc": "2.0",
-                        "error": {
-                            "code": -32600,
-                            "message": "Invalid Request",
-                            "data": "array elements must be objects, got int"
-                        },
-                        "id": null
-                    }
-                ]
-                JSON,
-                flags: \JSON_THROW_ON_ERROR
-            ),
-            \json_decode($res, flags: \JSON_THROW_ON_ERROR),
+        $this->assertJsonStringEqualsJsonString(
+            <<<'JSON'
+            [
+                {
+                    "jsonrpc": "2.0",
+                    "error": {
+                        "code": -32600,
+                        "message": "Invalid Request",
+                        "data": "array elements must be objects, got int"
+                    },
+                    "id": null
+                }
+            ]
+            JSON,
+            $res,
         );
     }
 
@@ -239,41 +225,39 @@ final class IntegrationTest extends TestCase
         $this->runner->run('[1,2,3]');
         $res = \ob_get_clean();
 
-        $this->assertEquals(
-            \json_decode(
-                <<<'JSON'
-                [
-                    {
-                        "jsonrpc": "2.0",
-                        "error": {
-                            "code": -32600,
-                            "message": "Invalid Request",
-                            "data": "array elements must be objects, got int"
-                        },
-                        "id": null
+        $this->assertJsonStringEqualsJsonString(
+            <<<'JSON'
+            [
+                {
+                    "jsonrpc": "2.0",
+                    "error": {
+                        "code": -32600,
+                        "message": "Invalid Request",
+                        "data": "array elements must be objects, got int"
                     },
-                    {
-                        "jsonrpc": "2.0",
-                        "error": {
-                            "code": -32600,
-                            "message": "Invalid Request",
-                            "data": "array elements must be objects, got int"
-                        },
-                        "id": null
+                    "id": null
+                },
+                {
+                    "jsonrpc": "2.0",
+                    "error": {
+                        "code": -32600,
+                        "message": "Invalid Request",
+                        "data": "array elements must be objects, got int"
                     },
-                    {
-                        "jsonrpc": "2.0",
-                        "error": {
-                            "code": -32600,
-                            "message": "Invalid Request",
-                            "data": "array elements must be objects, got int"
-                        },
-                        "id": null
-                    }
-                ]
-                JSON
-            ),
-            \json_decode($res),
+                    "id": null
+                },
+                {
+                    "jsonrpc": "2.0",
+                    "error": {
+                        "code": -32600,
+                        "message": "Invalid Request",
+                        "data": "array elements must be objects, got int"
+                    },
+                    "id": null
+                }
+            ]
+            JSON,
+            $res,
         );
     }
 
@@ -294,28 +278,25 @@ final class IntegrationTest extends TestCase
         );
         $res = \ob_get_clean();
 
-        $this->assertEquals(
-            \json_decode(
-                <<<'JSON'
-                [
-                    {"jsonrpc": "2.0", "result": 7, "id": "1"},
-                    {"jsonrpc": "2.0", "result": 19, "id": "2"},
-                    {
-                        "jsonrpc": "2.0",
-                        "error": {"code": -32601, "message": "Method not found"},
-                        "id": "5"
-                    },
-                    {"jsonrpc": "2.0", "result": ["hello", 5], "id": "9"},
-                    {
-                        "jsonrpc": "2.0",
-                        "error": {"code": -32600, "message": "Invalid Request"},
-                        "id": null
-                    }
-                ]
-                JSON,
-                flags: \JSON_THROW_ON_ERROR,
-            ),
-            \json_decode($res),
+        $this->assertJsonStringEqualsJsonString(
+            <<<'JSON'
+            [
+                {"jsonrpc": "2.0", "result": 7, "id": "1"},
+                {"jsonrpc": "2.0", "result": 19, "id": "2"},
+                {
+                    "jsonrpc": "2.0",
+                    "error": {"code": -32601, "message": "Method not found"},
+                    "id": "5"
+                },
+                {"jsonrpc": "2.0", "result": ["hello", 5], "id": "9"},
+                {
+                    "jsonrpc": "2.0",
+                    "error": {"code": -32600, "message": "Invalid Request"},
+                    "id": null
+                }
+            ]
+            JSON,
+            $res,
         );
     }
 
