@@ -25,5 +25,19 @@
         "php": "^8.1",
         "psr/log": "^3.0",
         "monolog/monolog": "^3.9"
+    },
+    "scripts": {
+        "test": [
+            "Composer\\Config::disableProcessTimeout",
+            "vendor/bin/phpunit --no-output 2> /dev/null"
+        ],
+        "phpstan": [
+            "Composer\\Config::disableProcessTimeout",
+            "vendor/bin/phpstan -q"
+        ],
+        "ci": [
+            "@phpstan",
+            "@test"
+        ]
     }
 }
