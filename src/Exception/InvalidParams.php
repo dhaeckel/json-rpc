@@ -16,7 +16,7 @@ final class InvalidParams extends JsonRpcError
     ) {
         $errorObject ??= new Message\ErrorObject(
             Message\PredefinedErrorCode::InvalidParams,
-            data: $message !== '' ? $message : $previous?->getMessage() ?? '',
+            data: $message !== '' ? $message : $previous?->getMessage(),
         );
         parent::__construct(
             $errorObject,

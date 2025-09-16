@@ -28,7 +28,11 @@ final class StdExceptionHandler implements ExceptionHandler
         );
         $response = new Message\Response(
             null,
-            $ex instanceof Exception\JsonRpcError ? $ex->getRequest()?->id : $this->request?->id,
+            (
+                $ex instanceof Exception\JsonRpcError && $ex->getRequest() !== null
+                ? $ex->getRequest()->id
+                : $this->request?->id
+            ),
             $errObj,
         );
 
