@@ -7,7 +7,6 @@ namespace Haeckel\JsonRpc\ErrorHandler;
 use Haeckel\JsonRpc\{Message, Server};
 use Psr\Log\{LoggerInterface, NullLogger};
 
-/** @codeCoverageIgnore cannot be covered by phpunit */
 class StdShutdownHandler implements ShutdownHandler
 {
     use IsRequestAware;
@@ -15,12 +14,13 @@ class StdShutdownHandler implements ShutdownHandler
     public function __construct(
         private Server\Emitter $emitter,
         private LoggerInterface $logger = new NullLogger(),
+        private ErrorMgmt $errorMgmt = new ErrorMgmt(),
     ) {
     }
 
     public function __invoke(mixed ...$args): void
     {
-        $lastErr = \error_get_last();
+        $lastErr = $this->errorMgmt->getLastError();
         $fatal = \E_ERROR | \E_PARSE | \E_CORE_ERROR | \E_COMPILE_ERROR | \E_USER_ERROR;
         if ($lastErr === null || ! ($lastErr['type'] & $fatal)) {
             return;
