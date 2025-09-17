@@ -25,11 +25,16 @@ class StdExceptionHandlerTest extends TestCase
     {
         $this->exceptionHandler = new ErrorHandler\StdExceptionHandler(new Server\StdEmitter());
     }
+
     public function testWithException(): void
     {
         $ex = new \Exception('test error');
 
-        $this->expectOutputString(
+        \ob_start();
+        $this->exceptionHandler->__invoke($ex);
+        $res = \ob_get_clean();
+
+        $this->assertJsonStringEqualsJsonString(
             \json_encode(
                 new Message\Response(
                     null,
@@ -37,15 +42,41 @@ class StdExceptionHandlerTest extends TestCase
                     new Message\ErrorObject(Message\PredefinedErrorCode::InternalError),
                 )
             ),
+            $res,
         );
+    }
+
+    public function testWithExceptionSetReq(): void
+    {
+        $ex = new \Exception('test error');
+        $req = new Message\Request('2.0', 'test', null, 5);
+        $this->exceptionHandler->setRequest($req);
+
+        \ob_start();
         $this->exceptionHandler->__invoke($ex);
+        $res = \ob_get_clean();
+
+        $this->assertJsonStringEqualsJsonString(
+            \json_encode(
+                new Message\Response(
+                    null,
+                    $req->id,
+                    new Message\ErrorObject(Message\PredefinedErrorCode::InternalError),
+                )
+            ),
+            $res,
+        );
     }
 
     public function testWithJsonRpcError(): void
     {
         $ex = new Exception\JsonParse();
 
-        $this->expectOutputString(
+        \ob_start();
+        $this->exceptionHandler->__invoke($ex);
+        $res = \ob_get_clean();
+
+        $this->assertJsonStringEqualsJsonString(
             \json_encode(
                 new Message\Response(
                     null,
@@ -53,9 +84,31 @@ class StdExceptionHandlerTest extends TestCase
                     new Message\ErrorObject(Message\PredefinedErrorCode::ParseError),
                 ),
             ),
+            $res,
+        );
+    }
+
+    public function testWithRequestOnEx(): void
+    {
+        $req = new Message\Request('2.0', 'test', null, 5);
+        $ex = new Exception\InvalidParams(
+            req: $req,
         );
 
+        \ob_start();
         $this->exceptionHandler->__invoke($ex);
+        $res = \ob_get_clean();
+
+        $this->assertJsonStringEqualsJsonString(
+            \json_encode(
+                new Message\Response(
+                    null,
+                    $req->id,
+                    new Message\ErrorObject(Message\PredefinedErrorCode::InvalidParams),
+                ),
+            ),
+            $res,
+        );
     }
 
     public function testWithRequestAware(): void
