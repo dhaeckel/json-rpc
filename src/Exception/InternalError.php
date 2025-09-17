@@ -17,7 +17,7 @@ final class InternalError extends JsonRpcError
     ) {
         $errorObject ??= new Message\ErrorObject(
             Message\PredefinedErrorCode::InternalError,
-            data: $message !== '' ? $message : $previous?->getMessage() ?? '',
+            data: $message !== '' ? $message : $previous?->getMessage(),
         );
         parent::__construct(
             $errorObject,
