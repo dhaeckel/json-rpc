@@ -5,12 +5,17 @@ declare(strict_types=1);
 namespace Haeckel\JsonRpc\Test\Integration;
 
 use Haeckel\JsonRpc\{Exception, Message, Server};
+use Haeckel\JsonRpcServerContract\Message\NotificationIface;
+use Haeckel\JsonRpcServerContract\Message\RequestIface;
+use Haeckel\JsonRpcServerContract\Server\NotificationHandlerIface;
+use Haeckel\JsonRpcServerContract\Server\RequestHandlerIface;
+use Haeckel\JsonRpcServerContract\Server\RouterIface;
 
-class TestRouter implements Server\Router
+class TestRouter implements RouterIface
 {
-    public function getRequestHandler(Message\Request $request): Server\RequestHandler
+    public function getRequestHandler(RequestIface $request): RequestHandlerIface
     {
-        return match ($request->method) {
+        return match ($request->getMethod()) {
             SubtractTestHandler::getMethodName() => new SubtractTestHandler(),
             SumTestHandler::getMethodName() => new SumTestHandler(),
             GetDataHandler::METHOD => new GetDataHandler(),
@@ -19,9 +24,9 @@ class TestRouter implements Server\Router
     }
 
     public function getNotificationHandler(
-        Message\Notification $notification,
-    ): Server\NotificationHandler {
-        return match ($notification->method) {
+        NotificationIface $notification,
+    ): NotificationHandlerIface {
+        return match ($notification->getMethod()) {
             UpdateNotificationTestHandler::getMethodName() => new UpdateNotificationTestHandler(),
             NotifyHelloHandler::getMethodName() => new NotifyHelloHandler(),
             NotifySumHandler::METHOD => new NotifySumHandler(),

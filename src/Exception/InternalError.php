@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Haeckel\JsonRpc\Exception;
 
 use Haeckel\JsonRpc\Message;
+use Haeckel\JsonRpcServerContract\Exception\InternalErrorIface;
+use Haeckel\JsonRpcServerContract\Message\ErrObj\PredefErrCode;
 
-final class InternalError extends JsonRpcError
+final class InternalError extends JsonRpcError implements InternalErrorIface
 {
     public function __construct(
         ?Message\ErrorObject $errorObject = null,
@@ -16,13 +18,14 @@ final class InternalError extends JsonRpcError
         ?\Throwable $previous = null,
     ) {
         $errorObject ??= new Message\ErrorObject(
-            Message\PredefinedErrorCode::InternalError,
+            PredefErrCode::InternalError->value,
+            PredefErrCode::InternalError->getMessage(),
             data: $message !== '' ? $message : $previous?->getMessage(),
         );
         parent::__construct(
             $errorObject,
             $request,
-            $message ?: $errorObject->code->getMessage(),
+            $message ?: PredefErrCode::InternalError->getMessage(),
             $code,
             $previous,
         );

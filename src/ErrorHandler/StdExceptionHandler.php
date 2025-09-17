@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Haeckel\JsonRpc\ErrorHandler;
 
 use Haeckel\JsonRpc\{Exception, Message, Server};
+use Haeckel\JsonRpcServerContract\Message\ErrObj\PredefErrCode;
+use Haeckel\JsonRpcServerContract\Server\EmitterIface;
 use Psr\Log\{LoggerInterface, NullLogger};
 
 final class StdExceptionHandler implements ExceptionHandler
@@ -12,7 +14,7 @@ final class StdExceptionHandler implements ExceptionHandler
     use IsRequestAware;
 
     public function __construct(
-        private Server\Emitter $emitter,
+        private EmitterIface $emitter,
         private LoggerInterface $logger = new NullLogger(),
     ) {
     }
@@ -24,14 +26,17 @@ final class StdExceptionHandler implements ExceptionHandler
         $errObj = (
             $ex instanceof Exception\JsonRpcError
             ? $ex->getErrorObject()
-            : new Message\ErrorObject(Message\PredefinedErrorCode::InternalError)
+            : new Message\ErrorObject(
+                PredefErrCode::InternalError->value,
+                PredefErrCode::InternalError->getMessage(),
+            )
         );
         $response = new Message\Response(
             null,
             (
                 $ex instanceof Exception\JsonRpcError && $ex->getRequest() !== null
-                ? $ex->getRequest()->id
-                : $this->request?->id
+                ? $ex->getRequest()->getId()
+                : $this->request?->getId()
             ),
             $errObj,
         );

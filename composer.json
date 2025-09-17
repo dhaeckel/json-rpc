@@ -1,5 +1,5 @@
 {
-    "name": "haeckel/json-rpc",
+    "name": "haeckel/json-rpc-server",
     "description": "Json rpc 2.0 server",
     "type": "library",
     "require-dev": {
@@ -24,7 +24,8 @@
     "require": {
         "php": "^8.1",
         "psr/log": "^3.0",
-        "monolog/monolog": "^3.9"
+        "monolog/monolog": "^3.9",
+        "haeckel/json-rpc-server-contracts": "^0.4.0"
     },
     "scripts": {
         "test": [

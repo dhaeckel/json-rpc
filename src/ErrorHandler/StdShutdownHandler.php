@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\ErrorHandler;
 
-use Haeckel\JsonRpc\{Message, Server};
+use Haeckel\JsonRpc\{Message};
+use Haeckel\JsonRpcServerContract\Message\ErrObj\PredefErrCode;
+use Haeckel\JsonRpcServerContract\Server\EmitterIface;
 use Psr\Log\{LoggerInterface, NullLogger};
 
 class StdShutdownHandler implements ShutdownHandler
@@ -12,7 +14,7 @@ class StdShutdownHandler implements ShutdownHandler
     use IsRequestAware;
 
     public function __construct(
-        private Server\Emitter $emitter,
+        private EmitterIface $emitter,
         private LoggerInterface $logger = new NullLogger(),
         private ErrorMgmt $errorMgmt = new ErrorMgmt(),
     ) {
@@ -32,9 +34,10 @@ class StdShutdownHandler implements ShutdownHandler
 
         $response = new Message\Response(
             null,
-            $this->request?->id,
+            $this->request?->getId(),
             new Message\ErrorObject(
-                Message\PredefinedErrorCode::InternalError,
+                PredefErrCode::InternalError->value,
+                PredefErrCode::InternalError->getMessage(),
                 data: $lastErr['message'],
             ),
         );

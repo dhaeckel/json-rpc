@@ -5,16 +5,30 @@ declare(strict_types=1);
 namespace Haeckel\JsonRpc\Message;
 
 use Haeckel\JsonRpc\{Exception, Message};
+use Haeckel\JsonRpcServerContract\Message\ErrObj\PredefErrCode;
+use Haeckel\JsonRpcServerContract\Message\RequestIface;
 
-final class Request extends Notification
+final class Request extends Notification implements RequestIface
 {
     public function __construct(
         string $jsonrpc,
         string $method,
         null|object|array $params,
-        public readonly int|string $id,
+        private int|string $id,
     ) {
         parent::__construct($jsonrpc, $method, $params);
+    }
+
+    public function getId(): int|string
+    {
+        return $this->id;
+    }
+
+    public function withId(int|string $id): static
+    {
+        $clone = clone $this;
+        $clone->id = $id;
+        return $clone;
     }
 
     /**
@@ -45,8 +59,9 @@ final class Request extends Notification
         }
 
         if ($errors !== []) {
+            $code = PredefErrCode::InvalidRequest;
             throw new Exception\InvalidRequest(
-                new Message\ErrorObject(Message\PredefinedErrorCode::InvalidRequest),
+                new Message\ErrorObject($code->value, $code->getMessage()),
                 \json_encode($errors, flags: \JSON_THROW_ON_ERROR),
             );
         }

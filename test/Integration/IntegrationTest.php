@@ -15,11 +15,11 @@ use PHPUnit\Framework\TestCase;
 #[Small]
 final class IntegrationTest extends TestCase
 {
-    private Server\Runner $runner;
+    private Server\Server $runner;
 
     public function setUp(): void
     {
-        $this->runner = new Server\StdRunner(new TestRouter());
+        $this->runner = new Server\Server(new TestRouter());
     }
 
     public function testPositional1(): void

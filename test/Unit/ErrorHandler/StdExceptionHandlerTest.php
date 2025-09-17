@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Haeckel\JsonRpc\Test\Unit\ErrorHandler;
 
 use Haeckel\JsonRpc\{ErrorHandler, Exception, Message, Server};
+use Haeckel\JsonRpcServerContract\Message\ErrObj\PredefErrCode;
 use PHPUnit\Framework\Attributes\{CoversClass, Small, UsesClass};
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ErrorHandler\StdExceptionHandler::class)]
-#[UsesClass(Server\StdEmitter::class)]
+#[UsesClass(Server\Emitter::class)]
 #[UsesClass(Message\Response::class)]
 #[UsesClass(Message\ErrorObject::class)]
-#[UsesClass(Message\PredefinedErrorCode::class)]
 #[UsesClass(Exception\JsonParse::class)]
 #[UsesClass(Exception\InvalidParams::class)]
 #[UsesClass(Message\Request::class)]
@@ -23,7 +23,7 @@ class StdExceptionHandlerTest extends TestCase
 
     public function setUp(): void
     {
-        $this->exceptionHandler = new ErrorHandler\StdExceptionHandler(new Server\StdEmitter());
+        $this->exceptionHandler = new ErrorHandler\StdExceptionHandler(new Server\Emitter());
     }
 
     public function testWithException(): void
@@ -39,7 +39,10 @@ class StdExceptionHandlerTest extends TestCase
                 new Message\Response(
                     null,
                     null,
-                    new Message\ErrorObject(Message\PredefinedErrorCode::InternalError),
+                    new Message\ErrorObject(
+                        PredefErrCode::InternalError->value,
+                        PredefErrCode::InternalError->getMessage(),
+                    ),
                 )
             ),
             $res,
@@ -60,8 +63,8 @@ class StdExceptionHandlerTest extends TestCase
             \json_encode(
                 new Message\Response(
                     null,
-                    $req->id,
-                    new Message\ErrorObject(Message\PredefinedErrorCode::InternalError),
+                    $req->getId(),
+                    Message\ErrorObject::newFromErrCode(PredefErrCode::InternalError),
                 )
             ),
             $res,
@@ -81,7 +84,7 @@ class StdExceptionHandlerTest extends TestCase
                 new Message\Response(
                     null,
                     null,
-                    new Message\ErrorObject(Message\PredefinedErrorCode::ParseError),
+                    Message\ErrorObject::newFromErrCode(PredefErrCode::ParseError),
                 ),
             ),
             $res,
@@ -103,8 +106,8 @@ class StdExceptionHandlerTest extends TestCase
             \json_encode(
                 new Message\Response(
                     null,
-                    $req->id,
-                    new Message\ErrorObject(Message\PredefinedErrorCode::InvalidParams),
+                    $req->getId(),
+                    Message\ErrorObject::newFromErrCode(PredefErrCode::InvalidParams),
                 ),
             ),
             $res,
@@ -124,8 +127,8 @@ class StdExceptionHandlerTest extends TestCase
             \json_encode(
                 new Message\Response(
                     null,
-                    $req->id,
-                    new Message\ErrorObject(Message\PredefinedErrorCode::InvalidParams),
+                    $req->getId(),
+                    Message\ErrorObject::newFromErrCode(PredefErrCode::InvalidParams),
                 ),
             ),
             $res,
@@ -144,8 +147,8 @@ class StdExceptionHandlerTest extends TestCase
             \json_encode(
                 new Message\Response(
                     null,
-                    $req->id,
-                    new Message\ErrorObject(Message\PredefinedErrorCode::InvalidParams),
+                    $req->getId(),
+                    Message\ErrorObject::newFromErrCode(PredefErrCode::InvalidParams),
                 ),
             ),
             $res,

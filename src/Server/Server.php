@@ -5,12 +5,24 @@ declare(strict_types=1);
 namespace Haeckel\JsonRpc\Server;
 
 use Haeckel\JsonRpc\{ErrorHandler, Exception, Message};
+use Haeckel\JsonRpcServerContract\Exception\InvalidRequestIface;
+use Haeckel\JsonRpcServerContract\Exception\JsonParseIface;
+use Haeckel\JsonRpcServerContract\Exception\JsonRpcErrorIface;
+use Haeckel\JsonRpcServerContract\Exception\MethodNotFoundIface;
+use Haeckel\JsonRpcServerContract\Message\BatchRequestIface;
+use Haeckel\JsonRpcServerContract\Message\NotificationIface;
+use Haeckel\JsonRpcServerContract\Message\RequestIface;
+use Haeckel\JsonRpcServerContract\Message\ResponseIface;
+use Haeckel\JsonRpcServerContract\Server\EmitterIface;
+use Haeckel\JsonRpcServerContract\Server\MessageFactoryIface;
+use Haeckel\JsonRpcServerContract\Server\RouterIface;
+use Haeckel\JsonRpcServerContract\ServerIface;
 use Monolog\Formatter\JsonFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Psr\Log\{LoggerInterface, LogLevel};
 
-final class StdRunner implements Runner
+final class Server implements ServerIface
 {
     private Errorhandler\ExceptionHandler $exceptionHandler;
     private Errorhandler\ShutdownHandler $shutdownHandler;
@@ -18,9 +30,9 @@ final class StdRunner implements Runner
     private LoggerInterface $logger;
 
     public function __construct(
-        private Router $router,
-        private MessageFactory $reqFactory = new StdMessageFactory(),
-        private Emitter $emitter = new StdEmitter(),
+        private RouterIface $router,
+        private MessageFactoryIface $reqFactory = new MessageFactory(),
+        private EmitterIface $emitter = new Emitter(),
         ?ErrorHandler\ExceptionHandler $exceptionHandler = null,
         ?ErrorHandler\ErrorHandler $errorHandler = null,
         ?ErrorHandler\ShutdownHandler $shutdownHandler = null,
@@ -50,7 +62,7 @@ final class StdRunner implements Runner
 
         try {
             $req = $this->reqFactory->newMessage($input);
-        } catch (Exception\JsonParse | Exception\InvalidRequest $e) {
+        } catch (JsonParseIface | InvalidRequestIface $e) {
             $this->logger->error($e->getMessage(), [$e]);
             $response = new Message\Response(
                 result: null,
@@ -61,14 +73,14 @@ final class StdRunner implements Runner
             return;
         }
 
-        if ($req instanceof Message\Request) {
+        if ($req instanceof RequestIface) {
             $this->setReqToErrHandlers($req);
             $response = $this->handleRequest($req);
             $this->emitter->emit($response);
             return;
         }
 
-        if ($req instanceof Message\BatchRequest) {
+        if ($req instanceof BatchRequestIface) {
             $response = $this->handleBatch($req);
             $this->emitter->emit($response);
             return;
@@ -77,16 +89,16 @@ final class StdRunner implements Runner
         $this->handleNotification($req);
     }
 
-    private function handleBatch(Message\BatchRequest $batchReq): Message\BatchResponse
+    private function handleBatch(BatchRequestIface $batchReq): Message\BatchResponse
     {
         $response = new Message\BatchResponse();
         foreach ($batchReq as $req) {
-            if ($req instanceof Message\Request) {
+            if ($req instanceof RequestIface) {
                 $response->add($this->handleRequest($req));
             } else {
                 try {
                     $this->handleNotification($req);
-                } catch (Exception\JsonRpcError $e) {
+                } catch (JsonRpcErrorIface $e) {
                     $response->add(new Message\Response(null, null, $e->getErrorObject()));
                 }
             }
@@ -98,27 +110,27 @@ final class StdRunner implements Runner
         return $response;
     }
 
-    private function handleRequest(Message\Request $req): Message\Response
+    private function handleRequest(RequestIface $req): ResponseIface
     {
         $this->setReqToErrHandlers($req);
         try {
             $handler = $this->router->getRequestHandler($req);
-        } catch (Exception\MethodNotFound $e) {
+        } catch (MethodNotFoundIface $e) {
             $this->logger->error($e->getMessage(), [$e]);
             return new Message\Response(
                 error: $e->getErrorObject(),
-                id: $req->id,
+                id: $req->getId(),
                 result: null,
             );
         }
 
         try {
             $response = $handler->handle($req);
-        } catch (Exception\JsonRpcError $e) {
+        } catch (JsonRpcErrorIface $e) {
             $this->logger->error($e->getMessage(), [$e]);
             return new Message\Response(
                 error: $e->getErrorObject(),
-                id: $req->id,
+                id: $req->getId(),
                 result: null,
             );
         }
@@ -126,14 +138,14 @@ final class StdRunner implements Runner
         return $response;
     }
 
-    /** @throws Exception\JsonRpcError */
-    private function handleNotification(Message\Notification $req): void
+    /** @throws JsonRpcErrorIface */
+    private function handleNotification(NotificationIface $req): void
     {
         $handler = $this->router->getNotificationHandler($req);
         $handler->handle($req);
     }
 
-    private function setReqToErrHandlers(Message\Request $req): void
+    private function setReqToErrHandlers(RequestIface $req): void
     {
         $this->exceptionHandler->setRequest($req);
         $this->shutdownHandler->setRequest($req);

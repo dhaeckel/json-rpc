@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\DataStruct;
 
+use Haeckel\JsonRpcServerContract\DataStruct\CollectionIface;
+
 /**
- * @template V of mixed
- * @implements \Iterator<int,V>
+ * @template V
+ * @implements CollectionIface<V>
  */
-abstract class Collection implements \Countable, \Iterator, \JsonSerializable
+abstract class Collection implements CollectionIface
 {
     /** @var array<int,V> */
     protected array $collection;
@@ -72,9 +74,8 @@ abstract class Collection implements \Countable, \Iterator, \JsonSerializable
     /**
      * @no-named-arguments
      * @param V $elements
-     * @throws \InvalidArgumentException
      */
-    protected function genericAdd(mixed ...$elements): void
+    protected function internalAdd(mixed ...$elements): void
     {
         \array_push($this->collection, ...$elements);
     }
@@ -82,9 +83,8 @@ abstract class Collection implements \Countable, \Iterator, \JsonSerializable
     /**
      * @no-named-arguments
      * @param V $elements
-     * @throws \InvalidArgumentException
      */
-    protected function genericRemove(mixed ...$elements): void
+    protected function internalRemove(mixed ...$elements): void
     {
         $strict = ! \is_object($elements[0]);
         foreach ($elements as $elem) {

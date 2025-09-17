@@ -9,25 +9,31 @@ use Haeckel\JsonRpc\Message\PredefinedErrorCode;
 use Haeckel\JsonRpc\Message\Request;
 use Haeckel\JsonRpc\Message\Response;
 use Haeckel\JsonRpc\Server\RequestHandler;
+use Haeckel\JsonRpcServerContract\Message\ErrObj\PredefErrCode;
+use Haeckel\JsonRpcServerContract\Message\RequestIface;
+use Haeckel\JsonRpcServerContract\Server\RequestHandlerIface;
 
-class SumTestHandler implements RequestHandler
+class SumTestHandler implements RequestHandlerIface
 {
     public static function getMethodName(): string
     {
         return 'sum';
     }
 
-    public function handle(Request $request): Response
+    public function handle(RequestIface $request): Response
     {
-        $params = $request->params;
+        $params = $request->getParams();
         if (! \is_array($params)) {
             return new Response(
                 null,
-                $request->id,
-                new ErrorObject(PredefinedErrorCode::InvalidParams),
+                $request->getId(),
+                new ErrorObject(
+                    PredefErrCode::InvalidParams->value,
+                    PredefErrCode::InvalidParams->getMessage(),
+                ),
             );
         }
 
-        return new Response(\array_sum($params), $request->id);
+        return new Response(\array_sum($params), $request->getId());
     }
 }

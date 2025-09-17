@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace Haeckel\JsonRpc\Message;
 
 use Haeckel\JsonRpc\DataStruct\Collection;
+use Haeckel\JsonRpcServerContract\Message\BatchRequestIface;
+use Haeckel\JsonRpcServerContract\Message\NotificationIface;
+use Haeckel\JsonRpcServerContract\Message\RequestIface;
+use Haeckel\JsonRpcServerContract\Message\ResponseIface;
 
-/**
- * @extends Collection<Request|Notification>
- */
-class BatchRequest extends Collection
+/** @extends Collection<RequestIface|NotificationIface> */
+class BatchRequest extends Collection implements BatchRequestIface
 {
     /**
      * save responses for invalid requests in batch request
-     * @var list<Response>
+     * @var list<ResponseIface>
      */
     private array $invalidReqResponseList = [];
 
@@ -24,34 +26,42 @@ class BatchRequest extends Collection
     }
 
     /** @no-named-arguments */
-    protected function remove(Request|Notification ...$elements): void
+    public function remove(RequestIface|NotificationIface ...$elements): void
     {
-        $this->genericRemove(...$elements);
+        $this->internalRemove(...$elements);
     }
 
-    public function current(): null|Request|Notification
+    public function genericRemove(mixed ...$elements): void
+    {
+        $this->remove(...$elements);
+    }
+
+    public function current(): null|RequestIface|NotificationIface
     {
         return $this->genericCurrent() ?: null;
     }
 
     /** @no-named-arguments */
-    public function add(Request|Notification ...$values): void
+    public function add(RequestIface|NotificationIface ...$values): void
     {
-        $this->genericAdd(...$values);
+        $this->internalAdd(...$values);
+    }
+
+    public function genericAdd(mixed ...$elements): void
+    {
+        $this->add(...$elements);
     }
 
     /**
      * if any request of a batch is invalid or hast invalid json, add the error response here
      * @no-named-arguments
      */
-    public function addResponseForInvalidReq(Response ...$response): void
+    public function addResponseForInvalidReq(ResponseIface ...$response): void
     {
         \array_push($this->invalidReqResponseList, ...$response);
     }
 
-    /**
-     * @return list<Response>
-     */
+    /** @return list<ResponseIface> */
     public function getResponsesForInvalidRequests(): array
     {
         return $this->invalidReqResponseList;

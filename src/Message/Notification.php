@@ -5,15 +5,56 @@ declare(strict_types=1);
 namespace Haeckel\JsonRpc\Message;
 
 use Haeckel\JsonRpc\{Exception, Message};
+use Haeckel\JsonRpc\Json;
+use Haeckel\JsonRpcServerContract\Message\ErrObj\PredefErrCode;
+use Haeckel\JsonRpcServerContract\Message\NotificationIface;
 
-class Notification
+class Notification implements NotificationIface
 {
+    use Json\Serializable;
+
     /** @param object|array<mixed> $params */
     public function __construct(
-        public readonly string $jsonrpc,
-        public readonly string $method,
-        public readonly null|array|object $params,
+        private string $jsonrpc,
+        private string $method,
+        private null|array|object $params,
     ) {
+    }
+
+    public function getJsonRpc(): string
+    {
+        return $this->jsonrpc;
+    }
+
+    public function withJsonRpc(string $jsonRpc): static
+    {
+        $clone = clone $this;
+        $clone->jsonrpc = $jsonRpc;
+        return $clone;
+    }
+
+    public function getMethod(): string
+    {
+        return $this->method;
+    }
+
+    public function withMethod(string $method): static
+    {
+        $clone = clone $this;
+        $clone->method = $method;
+        return $clone;
+    }
+
+    public function getParams(): null|array|object
+    {
+        return $this->params;
+    }
+
+    public function withParams(null|array|object $params): static
+    {
+        $clone = clone $this;
+        $clone->params = $params;
+        return $clone;
     }
 
     /**
@@ -36,8 +77,9 @@ class Notification
         }
 
         if ($errors !== []) {
+            $code = PredefErrCode::InvalidRequest;
             throw new Exception\InvalidRequest(
-                new Message\ErrorObject(Message\PredefinedErrorCode::InvalidRequest),
+                new Message\ErrorObject($code->value, $code->getMessage()),
                 \json_encode($errors, flags: \JSON_THROW_ON_ERROR),
             );
         }

@@ -9,15 +9,15 @@ use Haeckel\JsonRpc\ErrorHandler\StdShutdownHandler;
 use Haeckel\JsonRpc\Message\ErrorObject;
 use Haeckel\JsonRpc\Message\PredefinedErrorCode;
 use Haeckel\JsonRpc\Message\Response;
-use Haeckel\JsonRpc\Server\StdEmitter;
+use Haeckel\JsonRpc\Server\Emitter;
+use Haeckel\JsonRpcServerContract\Message\ErrObj\PredefErrCode;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(StdShutdownHandler::class)]
-#[UsesClass(StdEmitter::class)]
+#[UsesClass(Emitter::class)]
 #[UsesClass(ErrorMgmt::class)]
-#[UsesClass(PredefinedErrorCode::class)]
 #[UsesClass(Response::class)]
 #[UsesClass(ErrorObject::class)]
 class StdShutdownHandlerTest extends TestCase
@@ -25,7 +25,7 @@ class StdShutdownHandlerTest extends TestCase
     public function testWithoutErr(): void
     {
         $this->expectOutputString('');
-        $handler = new StdShutdownHandler(new StdEmitter());
+        $handler = new StdShutdownHandler(new Emitter());
         $handler->__invoke();
     }
 
@@ -35,7 +35,7 @@ class StdShutdownHandlerTest extends TestCase
         $stub->method('getLastError')->willReturn(
             ['type' => \E_ERROR, 'message' => 'Fatal Error', 'file' => 'test', 'line' => 1]
         );
-        $handler = new StdShutdownHandler(new StdEmitter(), errorMgmt: $stub);
+        $handler = new StdShutdownHandler(new Emitter(), errorMgmt: $stub);
         \ob_start();
         $handler->__invoke();
         $res = \ob_get_clean();
@@ -45,7 +45,7 @@ class StdShutdownHandlerTest extends TestCase
                 new Response(
                     null,
                     null,
-                    new ErrorObject(PredefinedErrorCode::InternalError, data: 'Fatal Error')
+                    ErrorObject::newFromErrCode(PredefErrCode::InternalError, data: 'Fatal Error')
                 )
             ),
             $res,

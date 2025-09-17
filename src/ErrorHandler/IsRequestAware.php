@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Haeckel\JsonRpc\ErrorHandler;
 
 use Haeckel\JsonRpc\Message;
+use Haeckel\JsonRpcServerContract\Message\RequestIface;
 
 trait IsRequestAware
 {
-    protected ?Message\Request $request = null;
+    protected ?RequestIface $request = null;
 
-    public function setRequest(Message\Request $request): void
+    public function setRequest(RequestIface $request): void
     {
         $this->request = $request;
     }

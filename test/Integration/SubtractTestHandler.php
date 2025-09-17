@@ -5,22 +5,24 @@ declare(strict_types=1);
 namespace Haeckel\JsonRpc\Test\Integration;
 
 use Haeckel\JsonRpc\{Message, Server};
+use Haeckel\JsonRpcServerContract\Message\RequestIface;
+use Haeckel\JsonRpcServerContract\Server\RequestHandlerIface;
 
-class SubtractTestHandler implements Server\RequestHandler
+class SubtractTestHandler implements RequestHandlerIface
 {
     public static function getMethodName(): string
     {
         return 'subtract';
     }
 
-    public function handle(Message\Request $request): Message\Response
+    public function handle(RequestIface $request): Message\Response
     {
-        $params = $request->params;
+        $params = $request->getParams();
         if (\is_array($params)) {
-            return $this->handlePositionalParams($params, $request->id);
+            return $this->handlePositionalParams($params, $request->getId());
         }
 
-        return $this->handleNamedParams($params, $request->id);
+        return $this->handleNamedParams($params, $request->getId());
     }
 
     private function handlePositionalParams(array $params, int|string $id): Message\Response
