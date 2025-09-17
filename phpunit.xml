@@ -27,9 +27,9 @@
 			<directory>src</directory>
 		</include>
 	</source>
-	<coverage>
+	<coverage pathCoverage="true">
 		<report>
-			<cobertura outputFile=".phpunit.result/cobertura-coverage.xml" />
+			<clover outputFile=".phpunit.result/clover.xml" />
 			<html outputDirectory=".phpunit.result/html-coverage" />
 		</report>
 	</coverage>
