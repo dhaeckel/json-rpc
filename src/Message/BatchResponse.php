@@ -17,12 +17,12 @@ final class BatchResponse extends Collection implements BatchResponseIface
         $this->collection = $response;
     }
 
-    public function genericAdd(mixed ...$elements): void
+    public function addGeneric(mixed ...$elements): void
     {
         $this->add(...$elements);
     }
 
-    public function genericRemove(mixed ...$elements): void
+    public function removeGeneric(mixed ...$elements): void
     {
         $this->remove(...$elements);
     }

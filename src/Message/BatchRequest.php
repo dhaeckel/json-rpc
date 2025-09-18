@@ -31,7 +31,7 @@ class BatchRequest extends Collection implements BatchRequestIface
         $this->internalRemove(...$elements);
     }
 
-    public function genericRemove(mixed ...$elements): void
+    public function removeGeneric(mixed ...$elements): void
     {
         $this->remove(...$elements);
     }
@@ -47,7 +47,7 @@ class BatchRequest extends Collection implements BatchRequestIface
         $this->internalAdd(...$values);
     }
 
-    public function genericAdd(mixed ...$elements): void
+    public function addGeneric(mixed ...$elements): void
     {
         $this->add(...$elements);
     }
