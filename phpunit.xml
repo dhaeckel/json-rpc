@@ -29,11 +29,8 @@
 	</source>
 	<coverage pathCoverage="true">
 		<report>
-			<clover outputFile=".phpunit.result/clover.xml" />
+			<clover outputFile="cov.xml" />
 			<html outputDirectory=".phpunit.result/html-coverage" />
 		</report>
 	</coverage>
-	<logging>
-		<junit outputFile=".phpunit.result/TEST-junit.xml" />
-	</logging>
 </phpunit>

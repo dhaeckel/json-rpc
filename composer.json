@@ -29,23 +29,20 @@
     },
     "scripts": {
         "test": [
-            "Composer\\Config::disableProcessTimeout",
+            "@putenv XDEBUG_MODE=coverage",
             "vendor/bin/phpunit"
         ],
          "testSilent": [
-            "Composer\\Config::disableProcessTimeout",
+            "@putenv XDEBUG_MODE=coverage",
             "vendor/bin/phpunit --no-output 2> /dev/null"
         ],
         "phpstan": [
-            "Composer\\Config::disableProcessTimeout",
             "vendor/bin/phpstan"
         ],
         "cs": [
-            "Composer\\Config::disableProcessTimeout",
             "vendor/bin/phpcs src/"
         ],
         "cbf": [
-            "Composer\\Config::disableProcessTimeout",
             "vendor/bin/phpcbf src/"
         ],
         "ci": [

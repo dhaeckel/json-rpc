@@ -13,6 +13,10 @@ class StdShutdownHandler implements ShutdownHandler
 {
     use IsRequestAware;
 
+    private const FATAL_ERR_BM = (
+        \E_ERROR | \E_PARSE | \E_CORE_ERROR | \E_COMPILE_ERROR | \E_USER_ERROR
+    );
+
     public function __construct(
         private EmitterIface $emitter,
         private LoggerInterface $logger = new NullLogger(),
@@ -23,10 +27,13 @@ class StdShutdownHandler implements ShutdownHandler
     public function __invoke(mixed ...$args): void
     {
         $lastErr = $this->errorMgmt->getLastError();
-        $fatal = \E_ERROR | \E_PARSE | \E_CORE_ERROR | \E_COMPILE_ERROR | \E_USER_ERROR;
-        if ($lastErr === null || ! ($lastErr['type'] & $fatal)) {
+        if ($lastErr === null) {
             return;
         }
+        if (! ($lastErr['type'] & self::FATAL_ERR_BM)) {
+            return;
+        }
+
         $this->logger->error(
             $lastErr['message'],
             ['at' => $lastErr['file'] . ':' . $lastErr['line'], 'code' => $lastErr['type']],
