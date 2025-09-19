@@ -19,6 +19,7 @@ abstract class JsonRpcError extends \Exception implements JsonRpcErrorIface
     ) {
         parent::__construct($message, $code, $previous);
     }
+
     public function getRequest(): ?RequestIface
     {
         return $this->request;
