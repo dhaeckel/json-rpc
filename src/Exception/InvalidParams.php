@@ -4,30 +4,26 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\Exception;
 
-use Haeckel\JsonRpc\Message;
-use Haeckel\JsonRpcServerContract\Exception\InvalidParamsIface;
-use Haeckel\JsonRpcServerContract\Message\ErrObj\PredefErrCode;
+use Haeckel\JsonRpcServerContract\{Exception, Message};
 
-final class InvalidParams extends JsonRpcError implements InvalidParamsIface
+final class InvalidParams extends JsonRpcError implements Exception\InvalidParamsIface
 {
+    public const STD_ERR_CODE = Message\ErrObj\PredefErrCode::InvalidParams;
+
     public function __construct(
-        ?Message\ErrorObject $errorObject = null,
-        ?Message\Request $req = null,
-        string $message = '',
+        ?Message\ErrorObjectIface $errObj = null,
+        ?Message\RequestIface $req = null,
+        string $msg = '',
         int $code = 0,
-        ?\Throwable $previous = null,
+        ?\Throwable $prev = null,
     ) {
-        $errorObject ??= new Message\ErrorObject(
-            PredefErrCode::InvalidParams->value,
-            PredefErrCode::InvalidParams->getMessage(),
-            data: $message !== '' ? $message : $previous?->getMessage(),
-        );
+        $errObj ??= $this->createStdErrObj(self::STD_ERR_CODE, $msg, $prev);
         parent::__construct(
-            $errorObject,
+            $errObj,
             $req,
-            $message ?: PredefErrCode::InvalidParams->getMessage(),
+            $msg ?: self::STD_ERR_CODE->getMessage(),
             $code,
-            $previous,
+            $prev,
         );
     }
 }

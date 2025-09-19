@@ -4,30 +4,26 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\Exception;
 
-use Haeckel\JsonRpc\Message;
-use Haeckel\JsonRpcServerContract\Exception\MethodNotFoundIface;
-use Haeckel\JsonRpcServerContract\Message\ErrObj\PredefErrCode;
+use Haeckel\JsonRpcServerContract\{Exception, Message};
 
-final class MethodNotFound extends JsonRpcError implements MethodNotFoundIface
+final class MethodNotFound extends JsonRpcError implements Exception\MethodNotFoundIface
 {
+    public const STD_ERR_CODE = Message\ErrObj\PredefErrCode::MethodNotFound;
+
     public function __construct(
-        ?Message\ErrorObject $errorObject = null,
-        ?Message\Request $request = null,
-        string $message = '',
+        ?Message\ErrorObjectIface $errObj = null,
+        ?Message\RequestIface $req = null,
+        string $msg = '',
         int $code = 0,
-        ?\Throwable $previous = null,
+        ?\Throwable $prev = null,
     ) {
-        $errorObject ??= new Message\ErrorObject(
-            PredefErrCode::MethodNotFound->value,
-            PredefErrCode::MethodNotFound->getMessage(),
-            data: $message !== '' ? $message : $previous?->getMessage(),
-        );
+        $errObj ??= $this->createStdErrObj(self::STD_ERR_CODE, $msg, $prev);
         parent::__construct(
-            $errorObject,
-            $request,
-            $message ?: PredefErrCode::MethodNotFound->getMessage(),
+            $errObj,
+            $req,
+            $msg ?: self::STD_ERR_CODE->getMessage(),
             $code,
-            $previous,
+            $prev,
         );
     }
 }

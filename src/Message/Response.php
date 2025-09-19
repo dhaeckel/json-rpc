@@ -22,7 +22,7 @@ final class Response implements Message\ResponseIface
     ) {
         if (($error === null && $result === null) || ($error !== null && $result !== null)) {
             throw new Exception\InternalError(
-                message: 'exactly one of the members "result" or "error" must not be null'
+                msg: 'exactly one of the members "result" or "error" must not be null'
             );
         }
     }

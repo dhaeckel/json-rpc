@@ -32,7 +32,7 @@ final class MessageFactory implements MessageFactoryIface
         /** @var string[] */
         global $argv;
         if (! isset($argv[1])) {
-            throw new Exception\InvalidRequest(message: 'got no argument with json message');
+            throw new Exception\InvalidRequest(msg: 'got no argument with json message');
         }
         return $this->parse($argv[1]);
     }
@@ -50,11 +50,11 @@ final class MessageFactory implements MessageFactoryIface
             $e = \error_get_last();
             if ($e === null) {
                 throw new Exception\InternalError(
-                    message: 'unknown error while reading from php://input',
+                    msg: 'unknown error while reading from php://input',
                 );
             }
             throw new Exception\InternalError(
-                message: 'error while reading from php://input: ' . $e['message'],
+                msg: 'error while reading from php://input: ' . $e['message'],
             );
         }
         return $this->parse($input);
@@ -84,7 +84,7 @@ final class MessageFactory implements MessageFactoryIface
              */
             $data = \json_decode($json, flags: \JSON_THROW_ON_ERROR);
         } catch (\JsonException $e) {
-            throw new Exception\JsonParse(message: $e->getMessage(), previous: $e);
+            throw new Exception\JsonParse(msg: $e->getMessage(), prev: $e);
         }
 
         // request is json object, assume single request or notification
@@ -102,7 +102,7 @@ final class MessageFactory implements MessageFactoryIface
 
         // nothing matched, base schema violated
         throw new Exception\InvalidRequest(
-            message: 'expected message to be object (request) or array (batch request), got '
+            msg: 'expected message to be object (request) or array (batch request), got '
                 . \get_debug_type($data)
         );
     }

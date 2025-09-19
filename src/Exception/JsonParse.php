@@ -4,28 +4,24 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\Exception;
 
-use Haeckel\JsonRpc\Message;
-use Haeckel\JsonRpcServerContract\Exception\JsonParseIface;
-use Haeckel\JsonRpcServerContract\Message\ErrObj\PredefErrCode;
+use Haeckel\JsonRpcServerContract\{Exception, Message};
 
-final class JsonParse extends JsonRpcError implements JsonParseIface
+final class JsonParse extends JsonRpcError implements Exception\JsonParseIface
 {
+    public const STD_ERR_CODE = Message\ErrObj\PredefErrCode::ParseError;
+
     public function __construct(
-        ?Message\ErrorObject $errorObject = null,
-        string $message = '',
+        ?Message\ErrorObjectIface $errorObject = null,
+        string $msg = '',
         int $code = 0,
-        ?\Throwable $previous = null,
+        ?\Throwable $prev = null,
     ) {
-        $errorObject ??= new Message\ErrorObject(
-            PredefErrCode::ParseError->value,
-            PredefErrCode::ParseError->getMessage(),
-            data: $message !== '' ? $message : $previous?->getMessage(),
-        );
+        $errorObject ??= $this->createStdErrObj(self::STD_ERR_CODE, $msg, $prev);
         parent::__construct(
-            errorObject: $errorObject,
-            message: $message ?: PredefErrCode::ParseError->getMessage(),
+            errorObj: $errorObject,
+            msg: $msg ?: self::STD_ERR_CODE->getMessage(),
             code: $code,
-            previous: $previous,
+            prev: $prev,
         );
     }
 }
