@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\Test\Unit\Exception;
 
-use Haeckel\JsonRpc\{Exception, Message};
-use Haeckel\JsonRpcServerContract\Message\ErrObj\PredefErrCode;
+use Haeckel\JsonRpc\{Exception, Message, Response};
+use Haeckel\JsonRpcServerContract\Response\Error\PredefErrCode;
 use PHPUnit\Framework\Attributes\{CoversClass, UsesClass};
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(Exception\InvalidParams::class)]
 #[CoversClass(Exception\JsonRpcError::class)]
-#[UsesClass(Message\ErrorObject::class)]
+#[UsesClass(Response\ErrorObject::class)]
 #[UsesClass(Message\Request::class)]
 class InvalidParamsTest extends TestCase
 {
@@ -20,7 +20,7 @@ class InvalidParamsTest extends TestCase
         $err = new Exception\InvalidParams();
 
         $this->assertEquals(
-            Message\ErrorObject::newFromErrCode(PredefErrCode::InvalidParams),
+            Response\ErrorObject::newFromErrorCode(PredefErrCode::InvalidParams),
             $err->getErrorObject(),
         );
         $this->assertEquals(null, $err->getRequest());
@@ -32,7 +32,7 @@ class InvalidParamsTest extends TestCase
         $err = new Exception\InvalidParams(req: $req);
 
         $this->assertEquals(
-            Message\ErrorObject::newFromErrCode(PredefErrCode::InvalidParams),
+            Response\ErrorObject::newFromErrorCode(PredefErrCode::InvalidParams),
             $err->getErrorObject(),
         );
         $this->assertEquals($req, $err->getRequest());

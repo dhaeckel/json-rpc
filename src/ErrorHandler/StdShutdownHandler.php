@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\ErrorHandler;
 
-use Haeckel\JsonRpc\{Message};
-use Haeckel\JsonRpcServerContract\Message\ErrObj\PredefErrCode;
+use Haeckel\JsonRpc\{Response};
+use Haeckel\JsonRpcServerContract\Response\Error\PredefErrCode;
 use Haeckel\JsonRpcServerContract\Server\EmitterIface;
 use Psr\Log\{LoggerInterface, NullLogger};
 
@@ -39,14 +39,12 @@ class StdShutdownHandler implements ShutdownHandler
             ['at' => $lastErr['file'] . ':' . $lastErr['line'], 'code' => $lastErr['type']],
         );
 
-        $response = new Message\Response(
-            null,
-            $this->request?->getId(),
-            new Message\ErrorObject(
-                PredefErrCode::InternalError->value,
-                PredefErrCode::InternalError->getMessage(),
+        $response = new Response\Error(
+            Response\ErrorObject::newFromErrorCode(
+                PredefErrCode::InternalError,
                 data: $lastErr['message'],
             ),
+            $this->request?->getId(),
         );
         $this->emitter->emit($response);
     }

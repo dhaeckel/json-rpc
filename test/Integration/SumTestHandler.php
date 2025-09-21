@@ -4,13 +4,9 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\Test\Integration;
 
-use Haeckel\JsonRpc\Message\ErrorObject;
-use Haeckel\JsonRpc\Message\PredefinedErrorCode;
-use Haeckel\JsonRpc\Message\Request;
-use Haeckel\JsonRpc\Message\Response;
-use Haeckel\JsonRpc\Server\RequestHandler;
-use Haeckel\JsonRpcServerContract\Message\ErrObj\PredefErrCode;
+use Haeckel\JsonRpc\Response;
 use Haeckel\JsonRpcServerContract\Message\RequestIface;
+use Haeckel\JsonRpcServerContract\Response\Error\PredefErrCode;
 use Haeckel\JsonRpcServerContract\Server\RequestHandlerIface;
 
 class SumTestHandler implements RequestHandlerIface
@@ -20,20 +16,16 @@ class SumTestHandler implements RequestHandlerIface
         return 'sum';
     }
 
-    public function handle(RequestIface $request): Response
+    public function handle(RequestIface $request): Response\Error|Response\Success
     {
         $params = $request->getParams();
         if (! \is_array($params)) {
-            return new Response(
-                null,
+            return new Response\Error(
+                Response\ErrorObject::newFromErrorCode(PredefErrCode::InvalidParams),
                 $request->getId(),
-                new ErrorObject(
-                    PredefErrCode::InvalidParams->value,
-                    PredefErrCode::InvalidParams->getMessage(),
-                ),
             );
         }
 
-        return new Response(\array_sum($params), $request->getId());
+        return new Response\Success(\array_sum($params), $request->getId());
     }
 }

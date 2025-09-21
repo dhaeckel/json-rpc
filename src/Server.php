@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Haeckel\JsonRpc\Server;
+namespace Haeckel\JsonRpc;
 
-use Haeckel\JsonRpc\{ErrorHandler, Exception, Message};
-use Haeckel\JsonRpcServerContract\Exception\InvalidRequestIface;
-use Haeckel\JsonRpcServerContract\Exception\JsonParseIface;
-use Haeckel\JsonRpcServerContract\Exception\JsonRpcErrorIface;
-use Haeckel\JsonRpcServerContract\Exception\MethodNotFoundIface;
-use Haeckel\JsonRpcServerContract\Message\BatchRequestIface;
-use Haeckel\JsonRpcServerContract\Message\NotificationIface;
-use Haeckel\JsonRpcServerContract\Message\RequestIface;
-use Haeckel\JsonRpcServerContract\Message\ResponseIface;
-use Haeckel\JsonRpcServerContract\Server\EmitterIface;
-use Haeckel\JsonRpcServerContract\Server\MessageFactoryIface;
-use Haeckel\JsonRpcServerContract\Server\RouterIface;
-use Haeckel\JsonRpcServerContract\ServerIface;
+use Haeckel\JsonRpcServerContract\{
+    Exception\InvalidRequestIface,
+    Exception\JsonParseIface,
+    Exception\JsonRpcErrorIface,
+    Exception\MethodNotFoundIface,
+    Message,
+    Response\ErrorIface as ErrorResponseIface,
+    Response\SuccessIface as SuccessResponseIface,
+    Server\EmitterIface,
+    Server\MessageFactoryIface,
+    Server\RouterIface,
+    ServerIface,
+};
 use Monolog\Formatter\JsonFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
@@ -24,15 +24,15 @@ use Psr\Log\{LoggerInterface, LogLevel};
 
 final class Server implements ServerIface
 {
-    private Errorhandler\ExceptionHandler $exceptionHandler;
-    private Errorhandler\ShutdownHandler $shutdownHandler;
-    private Errorhandler\ErrorHandler $errorHandler;
+    private ErrorHandler\ExceptionHandler $exceptionHandler;
+    private ErrorHandler\ShutdownHandler $shutdownHandler;
+    private ErrorHandler\ErrorHandler $errorHandler;
     private LoggerInterface $logger;
 
     public function __construct(
         private RouterIface $router,
-        private MessageFactoryIface $reqFactory = new MessageFactory(),
-        private EmitterIface $emitter = new Emitter(),
+        private MessageFactoryIface $reqFactory = new Server\MessageFactory(),
+        private EmitterIface $emitter = new Server\Emitter(),
         ?ErrorHandler\ExceptionHandler $exceptionHandler = null,
         ?ErrorHandler\ErrorHandler $errorHandler = null,
         ?ErrorHandler\ShutdownHandler $shutdownHandler = null,
@@ -64,23 +64,19 @@ final class Server implements ServerIface
             $req = $this->reqFactory->newMessage($input);
         } catch (JsonParseIface | InvalidRequestIface $e) {
             $this->logger->error($e->getMessage(), [$e]);
-            $response = new Message\Response(
-                result: null,
-                id: null,
-                error: $e->getErrorObject(),
-            );
+            $response = new Response\Error(error: $e->getErrorObject(), id: null);
             $this->emitter->emit($response);
             return;
         }
 
-        if ($req instanceof RequestIface) {
+        if ($req instanceof Message\RequestIface) {
             $this->setReqToErrHandlers($req);
             $response = $this->handleRequest($req);
             $this->emitter->emit($response);
             return;
         }
 
-        if ($req instanceof BatchRequestIface) {
+        if ($req instanceof Message\BatchRequestIface) {
             $response = $this->handleBatch($req);
             $this->emitter->emit($response);
             return;
@@ -89,17 +85,17 @@ final class Server implements ServerIface
         $this->handleNotification($req);
     }
 
-    private function handleBatch(BatchRequestIface $batchReq): Message\BatchResponse
+    private function handleBatch(Message\BatchRequestIface $batchReq): Response\Batch
     {
-        $response = new Message\BatchResponse();
+        $response = new Response\Batch();
         foreach ($batchReq as $req) {
-            if ($req instanceof RequestIface) {
+            if ($req instanceof Message\RequestIface) {
                 $response->add($this->handleRequest($req));
             } else {
                 try {
                     $this->handleNotification($req);
                 } catch (JsonRpcErrorIface $e) {
-                    $response->add(new Message\Response(null, null, $e->getErrorObject()));
+                    $response->add(new Response\Error($e->getErrorObject(), null));
                 }
             }
         }
@@ -110,42 +106,35 @@ final class Server implements ServerIface
         return $response;
     }
 
-    private function handleRequest(RequestIface $req): ResponseIface
-    {
+    private function handleRequest(
+        Message\RequestIface $req,
+    ): ErrorResponseIface|SuccessResponseIface {
         $this->setReqToErrHandlers($req);
         try {
             $handler = $this->router->getRequestHandler($req);
         } catch (MethodNotFoundIface $e) {
             $this->logger->error($e->getMessage(), [$e]);
-            return new Message\Response(
-                error: $e->getErrorObject(),
-                id: $req->getId(),
-                result: null,
-            );
+            return new Response\Error($e->getErrorObject(), $req->getId());
         }
 
         try {
             $response = $handler->handle($req);
         } catch (JsonRpcErrorIface $e) {
             $this->logger->error($e->getMessage(), [$e]);
-            return new Message\Response(
-                error: $e->getErrorObject(),
-                id: $req->getId(),
-                result: null,
-            );
+            return new Response\Error($e->getErrorObject(), $req->getId());
         }
 
         return $response;
     }
 
     /** @throws JsonRpcErrorIface */
-    private function handleNotification(NotificationIface $req): void
+    private function handleNotification(Message\NotificationIface $req): void
     {
         $handler = $this->router->getNotificationHandler($req);
         $handler->handle($req);
     }
 
-    private function setReqToErrHandlers(RequestIface $req): void
+    private function setReqToErrHandlers(message\RequestIface $req): void
     {
         $this->exceptionHandler->setRequest($req);
         $this->shutdownHandler->setRequest($req);

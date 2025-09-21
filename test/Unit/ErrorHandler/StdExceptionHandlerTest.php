@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\Test\Unit\ErrorHandler;
 
-use Haeckel\JsonRpc\{ErrorHandler, Exception, Message, Server};
-use Haeckel\JsonRpcServerContract\Message\ErrObj\PredefErrCode;
+use Haeckel\JsonRpc\{ErrorHandler, Exception, Message, Response, Server};
+use Haeckel\JsonRpcServerContract\Response\Error\PredefErrCode;
 use PHPUnit\Framework\Attributes\{CoversClass, Small, UsesClass};
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(ErrorHandler\StdExceptionHandler::class)]
 #[UsesClass(Server\Emitter::class)]
-#[UsesClass(Message\Response::class)]
-#[UsesClass(Message\ErrorObject::class)]
+#[UsesClass(Response\Error::class)]
+#[UsesClass(Response\ErrorObject::class)]
 #[UsesClass(Exception\JsonParse::class)]
 #[UsesClass(Exception\InvalidParams::class)]
 #[UsesClass(Message\Request::class)]
@@ -36,13 +36,9 @@ class StdExceptionHandlerTest extends TestCase
 
         $this->assertJsonStringEqualsJsonString(
             \json_encode(
-                new Message\Response(
+                new Response\Error(
+                    Response\ErrorObject::newFromErrorCode(PredefErrCode::InternalError),
                     null,
-                    null,
-                    new Message\ErrorObject(
-                        PredefErrCode::InternalError->value,
-                        PredefErrCode::InternalError->getMessage(),
-                    ),
                 )
             ),
             $res,
@@ -61,10 +57,9 @@ class StdExceptionHandlerTest extends TestCase
 
         $this->assertJsonStringEqualsJsonString(
             \json_encode(
-                new Message\Response(
-                    null,
+                new Response\Error(
+                    Response\ErrorObject::newFromErrorCode(PredefErrCode::InternalError),
                     $req->getId(),
-                    Message\ErrorObject::newFromErrCode(PredefErrCode::InternalError),
                 )
             ),
             $res,
@@ -81,10 +76,9 @@ class StdExceptionHandlerTest extends TestCase
 
         $this->assertJsonStringEqualsJsonString(
             \json_encode(
-                new Message\Response(
+                new Response\Error(
+                    Response\ErrorObject::newFromErrorCode(PredefErrCode::ParseError),
                     null,
-                    null,
-                    Message\ErrorObject::newFromErrCode(PredefErrCode::ParseError),
                 ),
             ),
             $res,
@@ -104,10 +98,9 @@ class StdExceptionHandlerTest extends TestCase
 
         $this->assertJsonStringEqualsJsonString(
             \json_encode(
-                new Message\Response(
-                    null,
+                new Response\Error(
+                    Response\ErrorObject::newFromErrorCode(PredefErrCode::InvalidParams),
                     $req->getId(),
-                    Message\ErrorObject::newFromErrCode(PredefErrCode::InvalidParams),
                 ),
             ),
             $res,
@@ -125,10 +118,9 @@ class StdExceptionHandlerTest extends TestCase
         $res = \ob_get_clean();
         $this->assertJsonStringEqualsJsonString(
             \json_encode(
-                new Message\Response(
-                    null,
+                new Response\Error(
+                    Response\ErrorObject::newFromErrorCode(PredefErrCode::InvalidParams),
                     $req->getId(),
-                    Message\ErrorObject::newFromErrCode(PredefErrCode::InvalidParams),
                 ),
             ),
             $res,
@@ -145,10 +137,9 @@ class StdExceptionHandlerTest extends TestCase
         $res = \ob_get_clean();
         $this->assertJsonStringEqualsJsonString(
             \json_encode(
-                new Message\Response(
-                    null,
+                new Response\Error(
+                    Response\ErrorObject::newFromErrorCode(PredefErrCode::InvalidParams),
                     $req->getId(),
-                    Message\ErrorObject::newFromErrCode(PredefErrCode::InvalidParams),
                 ),
             ),
             $res,

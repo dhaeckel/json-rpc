@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\Server;
 
-use Haeckel\JsonRpc\{Exception, Message};
-use Haeckel\JsonRpcServerContract\Message\ErrObj\PredefErrCode;
+use Haeckel\JsonRpc\{Exception, Message, Response};
+use Haeckel\JsonRpc\Response\ErrorObject;
+use Haeckel\JsonRpcServerContract\Response\Error\PredefErrCode;
 use Haeckel\JsonRpcServerContract\Server\MessageFactoryIface;
 
 final class MessageFactory implements MessageFactoryIface
@@ -71,14 +72,14 @@ final class MessageFactory implements MessageFactoryIface
              * @var object{
              *      jsonrpc:string,
              *      method:string,
-             *      params?:array<int,mixed>|object,id?:string|int
+             *      params?:list<mixed>|object,id?:string|int
              * }
              * |array<
              *      int,
              *      object{
              *          jsonrpc:string,
              *          method:string,
-             *          params?:array<int,mixed>|object,id?:string|int
+             *          params?:list<mixed>|object,id?:string|int
              *      }
              * >
              */
@@ -113,7 +114,7 @@ final class MessageFactory implements MessageFactoryIface
      *      object{
      *          jsonrpc:string,
      *          method:string,
-     *          params?:array<int,mixed>|object,id?:string|int
+     *          params?:list<mixed>|object,id?:string|int
      *      }
      * > $data
      */
@@ -121,9 +122,8 @@ final class MessageFactory implements MessageFactoryIface
     {
         if ($data === []) {
             throw new Exception\InvalidRequest(
-                new Message\ErrorObject(
-                    PredefErrCode::InvalidRequest->value,
-                    PredefErrCode::InvalidRequest->getMessage(),
+                ErrorObject::newFromErrorCode(
+                    PredefErrCode::InvalidRequest,
                     data: 'empty batch request',
                 ),
             );
@@ -134,14 +134,12 @@ final class MessageFactory implements MessageFactoryIface
             // nested request violates schema
             if (! \is_object($req)) {
                 $batchReq->addResponseForInvalidReq(
-                    new Message\Response(
-                        null,
-                        null,
-                        new Message\ErrorObject(
-                            PredefErrCode::InvalidRequest->value,
-                            PredefErrCode::InvalidRequest->getMessage(),
+                    new Response\Error(
+                        ErrorObject::newFromErrorCode(
+                            PredefErrCode::InvalidRequest,
                             data: 'array elements must be objects, got ' . \get_debug_type($req)
-                        )
+                        ),
+                        null,
                     )
                 );
                 continue;
@@ -154,13 +152,7 @@ final class MessageFactory implements MessageFactoryIface
                     $batchReq->add(Message\Notification::newFromData($req));
                 }
             } catch (Exception\JsonRpcError $e) {
-                $batchReq->addResponseForInvalidReq(
-                    new Message\Response(
-                        null,
-                        null,
-                        $e->getErrorObject(),
-                    )
-                );
+                $batchReq->addResponseForInvalidReq(new Response\Error($e->getErrorObject(), null));
             }
         }
 

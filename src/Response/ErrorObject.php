@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Haeckel\JsonRpc\Message;
+namespace Haeckel\JsonRpc\Response;
 
-use Haeckel\JsonRpcServerContract\Message\ErrObj\ErrCodeIface;
-use Haeckel\JsonRpcServerContract\Message\ErrorObjectIface;
+use Haeckel\JsonRpcServerContract\Response\Error\ErrCodeIface;
+use Haeckel\JsonRpcServerContract\Response\Error\ErrObjectIface;
 
-final class ErrorObject implements ErrorObjectIface
+final class ErrorObject implements ErrObjectIface
 {
     public function __construct(
-        private int $code,
-        private string $message,
-        private mixed $data = null,
+        protected int $code,
+        protected string $message,
+        protected mixed $data = null,
     ) {
     }
 
-    public static function newFromErrCode(ErrCodeIface $errCode, mixed $data = null): self
+    public static function newFromErrorCode(ErrCodeIface $errCode, mixed $data = null): static
     {
         return new self(
             $errCode->getCode(),
@@ -25,12 +25,12 @@ final class ErrorObject implements ErrorObjectIface
         );
     }
 
-    public function getErrorCode(): int
+    public function getCode(): int
     {
         return $this->code;
     }
 
-    public function withErrorCode(int $code): static
+    public function withCode(int $code): static
     {
         $clone = clone $this;
         $clone->code = $code;

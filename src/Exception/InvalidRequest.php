@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\Exception;
 
-use Haeckel\JsonRpcServerContract\{Exception, Message};
+use Haeckel\JsonRpcServerContract\{Exception};
+use Haeckel\JsonRpcServerContract\Response\Error\ErrObjectIface;
+use Haeckel\JsonRpcServerContract\Response\Error\PredefErrCode;
 
 final class InvalidRequest extends JsonRpcError implements Exception\InvalidRequestIface
 {
-    public const STD_ERR_CODE = Message\ErrObj\PredefErrCode::InvalidRequest;
+    public const STD_ERR_CODE = PredefErrCode::InvalidRequest;
 
     public function __construct(
-        ?Message\ErrorObjectIface $errObj = null,
+        ?ErrObjectIface $errObj = null,
         string $msg = '',
         int $code = 0,
         ?\Throwable $prev = null,

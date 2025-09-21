@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\Message;
 
-use Haeckel\JsonRpc\{Exception, Message};
-use Haeckel\JsonRpc\Json;
-use Haeckel\JsonRpcServerContract\Message\ErrObj\PredefErrCode;
+use Haeckel\JsonRpc\{Exception, Json, Response};
 use Haeckel\JsonRpcServerContract\Message\NotificationIface;
+use Haeckel\JsonRpcServerContract\Response\Error\PredefErrCode;
 
 class Notification implements NotificationIface
 {
     use Json\Serializable;
 
-    /** @param object|array<mixed> $params */
+    /** @param object|list<mixed> $params */
     public function __construct(
         private string $jsonrpc,
         private string $method,
@@ -58,7 +57,7 @@ class Notification implements NotificationIface
     }
 
     /**
-     * @param object{jsonrpc:string,method:string,params?:array<mixed>|object} $data
+     * @param object{jsonrpc:string,method:string,params?:list<mixed>|object} $data
      *
      * @throws Exception\InvalidRequest
      */
@@ -72,14 +71,18 @@ class Notification implements NotificationIface
             $errors[] = 'member "method" must be string';
         }
 
-        if (isset($data->params) && (! \is_array($data->params) && ! \is_object($data->params))) {
-            $errors[] = 'member "params" must be array, object or be omitted';
+        if (isset($data->params)) {
+            if (\is_array($data->params) && ! \array_is_list($data->params)) {
+                $errors[] = 'member "params" must be array, object or be omitted';
+            }
+            if (! \is_array($data->params) && ! \is_object($data->params)) {
+                $errors[] = 'member "params" must be array, object or be omitted';
+            }
         }
 
         if ($errors !== []) {
-            $code = PredefErrCode::InvalidRequest;
             throw new Exception\InvalidRequest(
-                new Message\ErrorObject($code->value, $code->getMessage()),
+                Response\ErrorObject::newFromErrorCode(PredefErrCode::InvalidRequest),
                 \json_encode($errors, flags: \JSON_THROW_ON_ERROR),
             );
         }

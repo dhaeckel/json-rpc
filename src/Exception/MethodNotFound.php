@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace Haeckel\JsonRpc\Exception;
 
 use Haeckel\JsonRpcServerContract\{Exception, Message};
+use Haeckel\JsonRpcServerContract\Response\Error\ErrObjectIface;
+use Haeckel\JsonRpcServerContract\Response\Error\PredefErrCode;
 
 final class MethodNotFound extends JsonRpcError implements Exception\MethodNotFoundIface
 {
-    public const STD_ERR_CODE = Message\ErrObj\PredefErrCode::MethodNotFound;
+    public const STD_ERR_CODE = PredefErrCode::MethodNotFound;
 
     public function __construct(
-        ?Message\ErrorObjectIface $errObj = null,
+        ?ErrObjectIface $errObj = null,
         ?Message\RequestIface $req = null,
         string $msg = '',
         int $code = 0,

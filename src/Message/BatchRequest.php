@@ -5,17 +5,14 @@ declare(strict_types=1);
 namespace Haeckel\JsonRpc\Message;
 
 use Haeckel\JsonRpc\DataStruct\Collection;
-use Haeckel\JsonRpcServerContract\Message\BatchRequestIface;
-use Haeckel\JsonRpcServerContract\Message\NotificationIface;
-use Haeckel\JsonRpcServerContract\Message\RequestIface;
-use Haeckel\JsonRpcServerContract\Message\ResponseIface;
+use Haeckel\JsonRpcServerContract\{Message, Response};
 
-/** @extends Collection<RequestIface|NotificationIface> */
-class BatchRequest extends Collection implements BatchRequestIface
+/** @extends Collection<Message\RequestIface|Message\NotificationIface> */
+class BatchRequest extends Collection implements Message\BatchRequestIface
 {
     /**
      * save responses for invalid requests in batch request
-     * @var list<ResponseIface>
+     * @var list<Response\ErrorIface>
      */
     private array $invalidReqResponseList = [];
 
@@ -26,7 +23,7 @@ class BatchRequest extends Collection implements BatchRequestIface
     }
 
     /** @no-named-arguments */
-    public function remove(RequestIface|NotificationIface ...$elements): void
+    public function remove(Message\RequestIface|Message\NotificationIface ...$elements): void
     {
         $this->internalRemove(...$elements);
     }
@@ -36,13 +33,13 @@ class BatchRequest extends Collection implements BatchRequestIface
         $this->remove(...$elements);
     }
 
-    public function current(): null|RequestIface|NotificationIface
+    public function current(): null|Message\RequestIface|Message\NotificationIface
     {
         return $this->genericCurrent() ?: null;
     }
 
     /** @no-named-arguments */
-    public function add(RequestIface|NotificationIface ...$values): void
+    public function add(Message\RequestIface|Message\NotificationIface ...$values): void
     {
         $this->internalAdd(...$values);
     }
@@ -53,15 +50,15 @@ class BatchRequest extends Collection implements BatchRequestIface
     }
 
     /**
-     * if any request of a batch is invalid or hast invalid json, add the error response here
+     * if any request of a batch is invalid or has invalid json, add the error response here
      * @no-named-arguments
      */
-    public function addResponseForInvalidReq(ResponseIface ...$response): void
+    public function addResponseForInvalidReq(Response\ErrorIface ...$response): void
     {
         \array_push($this->invalidReqResponseList, ...$response);
     }
 
-    /** @return list<ResponseIface> */
+    /** @return list<Response\ErrorIface> */
     public function getResponsesForInvalidRequests(): array
     {
         return $this->invalidReqResponseList;

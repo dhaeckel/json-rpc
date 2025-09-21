@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace Haeckel\JsonRpc\Exception;
 
 use Haeckel\JsonRpcServerContract\{Exception, Message};
+use Haeckel\JsonRpcServerContract\Response\Error\ErrObjectIface;
+use Haeckel\JsonRpcServerContract\Response\Error\PredefErrCode;
 
 final class InvalidParams extends JsonRpcError implements Exception\InvalidParamsIface
 {
-    public const STD_ERR_CODE = Message\ErrObj\PredefErrCode::InvalidParams;
+    public const STD_ERR_CODE = PredefErrCode::InvalidParams;
 
     public function __construct(
-        ?Message\ErrorObjectIface $errObj = null,
+        ?ErrObjectIface $errObj = null,
         ?Message\RequestIface $req = null,
         string $msg = '',
         int $code = 0,

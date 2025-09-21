@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\Exception;
 
-use Haeckel\JsonRpc\Message\ErrorObject;
+use Haeckel\JsonRpc\Response\ErrorObject;
 use Haeckel\JsonRpcServerContract\{Exception, Message};
+use Haeckel\JsonRpcServerContract\Response\Error\ErrCodeIface;
+use Haeckel\JsonRpcServerContract\Response\Error\ErrObjectIface;
 
 abstract class JsonRpcError extends \Exception implements Exception\JsonRpcErrorIface
 {
     public function __construct(
-        protected Message\ErrorObjectIface $errorObj,
+        protected ErrObjectIface $errorObj,
         protected ?Message\RequestIface $req = null,
         string $msg = '',
         int $code = 0,
@@ -20,7 +22,7 @@ abstract class JsonRpcError extends \Exception implements Exception\JsonRpcError
     }
 
     protected static function createStdErrObj(
-        Message\ErrObj\ErrCodeIface $errCode,
+        ErrCodeIface $errCode,
         string $msg,
         ?\Throwable $prev,
     ): ErrorObject {
@@ -36,7 +38,7 @@ abstract class JsonRpcError extends \Exception implements Exception\JsonRpcError
         return $this->req;
     }
 
-    public function getErrorObject(): Message\ErrorObjectIface
+    public function getErrorObject(): ErrObjectIface
     {
         return $this->errorObj;
     }

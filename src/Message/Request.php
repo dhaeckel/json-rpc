@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Haeckel\JsonRpc\Message;
 
-use Haeckel\JsonRpc\{Exception, Message};
-use Haeckel\JsonRpcServerContract\Message\ErrObj\PredefErrCode;
+use Haeckel\JsonRpc\{Exception, Response};
 use Haeckel\JsonRpcServerContract\Message\RequestIface;
+use Haeckel\JsonRpcServerContract\Response\Error\PredefErrCode;
 
 final class Request extends Notification implements RequestIface
 {
@@ -35,7 +35,7 @@ final class Request extends Notification implements RequestIface
      * @param object{
      *      jsonrpc:string,
      *      method:string,
-     *      params?:array<int,mixed>|object,
+     *      params?:list<mixed>|object,
      *      id:int|string
      * } $data
      * @throws Exception\InvalidRequest
@@ -50,8 +50,13 @@ final class Request extends Notification implements RequestIface
             $errors[] = 'member "method" must be string';
         }
 
-        if (isset($data->params) && (! \is_array($data->params) && ! \is_object($data->params))) {
-            $errors[] = 'member "params" must be array, object or be omitted';
+        if (isset($data->params)) {
+            if (\is_array($data->params) && ! \array_is_list($data->params)) {
+                $errors[] = 'member "params" must be array, object or be omitted';
+            }
+            if (! \is_array($data->params) && ! \is_object($data->params)) {
+                $errors[] = 'member "params" must be array, object or be omitted';
+            }
         }
 
         if (! \is_int($data->id) && ! \is_string($data->id)) {
@@ -59,9 +64,8 @@ final class Request extends Notification implements RequestIface
         }
 
         if ($errors !== []) {
-            $code = PredefErrCode::InvalidRequest;
             throw new Exception\InvalidRequest(
-                new Message\ErrorObject($code->value, $code->getMessage()),
+                Response\ErrorObject::newFromErrorCode(PredefErrCode::InvalidRequest),
                 \json_encode($errors, flags: \JSON_THROW_ON_ERROR),
             );
         }

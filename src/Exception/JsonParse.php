@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace Haeckel\JsonRpc\Exception;
 
 use Haeckel\JsonRpcServerContract\{Exception, Message};
+use Haeckel\JsonRpcServerContract\Response\Error\ErrObjectIface;
+use Haeckel\JsonRpcServerContract\Response\Error\PredefErrCode;
 
 final class JsonParse extends JsonRpcError implements Exception\JsonParseIface
 {
-    public const STD_ERR_CODE = Message\ErrObj\PredefErrCode::ParseError;
+    public const STD_ERR_CODE = PredefErrCode::ParseError;
 
     public function __construct(
-        ?Message\ErrorObjectIface $errorObject = null,
+        ?ErrObjectIface $errorObject = null,
         string $msg = '',
         int $code = 0,
         ?\Throwable $prev = null,
