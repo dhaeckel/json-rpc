@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b69d0b001c331a26326124437b016b7f",
+    "content-hash": "92b9ac07b13656d2e40a7478a34752be",
     "packages": [
         {
             "name": "haeckel/json-rpc-server-contracts",
-            "version": "4.0.2",
+            "version": "5.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dhaeckel/json-rpc-contracts.git",
-                "reference": "a4a93bed8828b29480bc4d7b15e95e03e277d3dc"
+                "reference": "1be74326782f387dafe0ccd1c25ba502ab9ee72a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dhaeckel/json-rpc-contracts/zipball/a4a93bed8828b29480bc4d7b15e95e03e277d3dc",
-                "reference": "a4a93bed8828b29480bc4d7b15e95e03e277d3dc",
+                "url": "https://api.github.com/repos/dhaeckel/json-rpc-contracts/zipball/1be74326782f387dafe0ccd1c25ba502ab9ee72a",
+                "reference": "1be74326782f387dafe0ccd1c25ba502ab9ee72a",
                 "shasum": ""
             },
             "require": {
@@ -46,9 +46,9 @@
             "description": "Small framework for writing JSON-RPC 2.0 servers. Inspired by psr-15",
             "support": {
                 "issues": "https://github.com/dhaeckel/json-rpc-contracts/issues",
-                "source": "https://github.com/dhaeckel/json-rpc-contracts/tree/4.0.2"
+                "source": "https://github.com/dhaeckel/json-rpc-contracts/tree/5.0.0"
             },
-            "time": "2025-09-21T23:13:22+00:00"
+            "time": "2025-09-22T08:48:43+00:00"
         },
         {
             "name": "monolog/monolog",

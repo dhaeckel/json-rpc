@@ -12,11 +12,15 @@ class Notification implements NotificationIface
 {
     use Json\Serializable;
 
-    /** @param object|list<mixed> $params */
+    /**
+     * @param object|list<mixed> $params
+     * @param array<string,mixed> $attributes
+     */
     public function __construct(
         private string $jsonrpc,
         private string $method,
         private null|array|object $params,
+        private array $attributes = [],
     ) {
     }
 
@@ -92,5 +96,22 @@ class Notification implements NotificationIface
             $data->method,
             $data->params ?? null,
         );
+    }
+
+    public function getAttributes(): array
+    {
+        return $this->attributes;
+    }
+
+    public function getAttribute(string $key, mixed $default = null): mixed
+    {
+        return $this->attributes[$key] ?? $default;
+    }
+
+    public function withAttribute(string $key, mixed $value): static
+    {
+        $clone = clone $this;
+        $clone->attributes[$key] = $value;
+        return $clone;
     }
 }
